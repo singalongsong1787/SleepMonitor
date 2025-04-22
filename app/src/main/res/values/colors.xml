@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="background_navigition">#5D89B3</color>
+    <color name="selected_color">#4972FF</color> <!-- 选中时为红色 -->
+    <color name="unselected_color">#A2B3F5</color> <!-- 未选中时为灰色 -->
+    <color name="grayBlue">#009ACD</color>
+    <color name="DeepskyBlue">#1E90FF</color>
+    <color name="deepSleep">#4AB4A0</color>
+    <color name="lightSleep">#1C4DFF</color>
+    <color name="wakeUp">#DEBC8D</color>
+    <color name="line_WLD">#9477E5</color>
+    <color name="line_red">	#FF0000</color>
+    <color name="textOfTime">#C3C3C3</color>
+    <color name="navigation">#2A60AE</color>
+    <color name="tablayout_unselected">#6A6E70</color>
+    <color name="dashboard_background">#125DA7</color>
+    <color name="daily_header">#216DB8</color>
+    <color name="dashboard_tablayout">#064C91</color>
+    <color name="sleeptrend">#216DB8</color>
+    <color name="mpa_line">#59657D</color>
+    <color name="mpa_bar_1">#CCAE61</color>
+    <color name="mpa_bar_2">#45ACD4</color>
+    <color name="mpa_snoring_mild">#8358FF</color>
+    <color name="mpa_snoring_moderate">#CFB36D</color>
+    <color name="mpa_snoring_severe">#EB3324</color>
+    <color name="nontifications_toolbar">#2A60AE</color>
+    <color name="nontifications_background">#125DA7</color>
+    <color name="alarm_block_background">#1B1D32</color>
+    <color name="switch_thumb">#F9FAFC</color>
+    <color name="switch_track">#5072FA</color>
+    <color name="item_weekdays_unselceted">#BBBFCB</color>
+    <color name="item_weekdays_selected">#6A8CD6</color>
+    <color name="alarm_background">#23253C</color>
+</resources>
+
+

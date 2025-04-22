@@ -1,0 +1,15 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+android:shape="oval">
+<!-- 定义圆形的填充颜色 -->
+<solid android:color="#2035B5" />
+<!-- 定义圆形内部的填充间距 -->
+<padding
+    android:bottom="15dp"
+    android:left="15dp"
+    android:right="15dp"
+    android:top="15dp" />
+<!-- 定义圆形的边框 -->
+<stroke
+    android:width="15dp"
+    android:color="#174BC8" />
+</shape>

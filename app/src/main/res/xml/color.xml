@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <resources>
+        <color name="selected_color">#FF0000</color> <!-- 选中时为红色 -->
+        <color name="unselected_color">#808080</color> <!-- 未选中时为灰色 -->
+    </resources>
+
+</PreferenceScreen>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginTop="110dp"
+    android:layout_height="540dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
+    android:background="@drawable/shape_header"
+    android:layout_width="match_parent">
+
+    <TextView
+        android:id="@+id/promptInformation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="累计打鼾时间"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:layout_marginTop="200dp"
+        android:layout_marginLeft="10dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+       />
+
+    <TextView
+        android:id="@+id/snoringDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0时0分0秒"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:layout_marginBottom="25dp"
+        android:layout_marginLeft="10dp"
+        app:layout_constraintBottom_toTopOf="@+id/promptInformation"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <ImageView
+        android:id="@+id/getup"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/getup"
+        android:layout_marginEnd="120dp"
+        android:layout_marginTop="30dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <ImageView
+        android:id="@+id/moon"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/image_sleep"
+        android:layout_marginTop="50dp"
+        app:layout_constraintTop_toBottomOf="@+id/getup"
+        app:layout_constraintStart_toStartOf="@+id/getup"/>
+
+    <TextView
+        android:id="@+id/getupTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00:00"
+        android:textSize="40sp"
+        android:textColor="@color/white"
+        android:layout_marginLeft="10dp"
+        app:layout_constraintTop_toTopOf="@+id/getup"
+        app:layout_constraintStart_toEndOf="@+id/getup"/>
+    <TextView
+        android:id="@+id/getupDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0000年00月00日"
+        android:textSize="15sp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintTop_toBottomOf="@+id/getupTime"
+        app:layout_constraintStart_toStartOf="@+id/getupTime"/>
+
+
+    <TextView
+        android:id="@+id/bedTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00:00"
+        android:textSize="40sp"
+        android:textColor="@color/white"
+        android:layout_marginLeft="10dp"
+        app:layout_constraintTop_toTopOf="@+id/moon"
+        app:layout_constraintStart_toEndOf="@+id/moon"/>
+    <TextView
+        android:id="@+id/bedDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0000年00月00日"
+        android:textSize="15sp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintTop_toBottomOf="@+id/bedTime"
+        app:layout_constraintStart_toStartOf="@+id/bedTime"/>
+
+    <com.morales.bnatest.SleepChartView
+        android:id="@+id/SleepChart"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="1dp"
+        android:layout_marginEnd="1dp"
+        app:layout_constraintTop_toBottomOf="@+id/promptInformation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/Message_SleepChartView"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/SleepChart"
+        app:layout_constraintStart_toStartOf="@+id/SleepChart"
+        app:layout_constraintEnd_toEndOf="@+id/SleepChart">
+
+        <View
+            android:id="@+id/rectangle_deepsleep"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/shape_rectangle_deepsleep"
+            android:layout_centerInParent="true"
+            android:layout_marginStart="30dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <TextView
+            android:id="@+id/text_deepsleep"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:text="深睡"
+            android:textColor="@color/white"
+            android:layout_marginStart="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/rectangle_deepsleep"/>
+
+        <View
+            android:id="@+id/rectangle_wakeup"
+            android:layout_height="20dp"
+            android:layout_width="20dp"
+            android:background="@drawable/shape_rectangle_wakeup"
+            android:layout_marginStart="40dp"
+            app:layout_constraintStart_toEndOf="@+id/text_deepsleep"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:id="@+id/text_wakeup"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:text="觉醒"
+            android:textColor="@color/white"
+            android:layout_marginStart="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/rectangle_wakeup"/>
+
+        <View
+            android:id="@+id/rectangle_lightsleep"
+            android:layout_height="20dp"
+            android:layout_width="20dp"
+            android:background="@drawable/shape_rectangle_lightsleep"
+            android:layout_marginStart="40dp"
+            app:layout_constraintStart_toEndOf="@+id/text_wakeup"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:id="@+id/text_lightsleep"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:text="浅睡"
+            android:textColor="@color/white"
+            android:layout_marginStart="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/rectangle_lightsleep"/>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
