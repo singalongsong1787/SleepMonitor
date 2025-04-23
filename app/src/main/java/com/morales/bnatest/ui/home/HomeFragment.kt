@@ -3,6 +3,7 @@ package com.morales.bnatest.ui.home
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,7 +28,10 @@ import java.util.Calendar
 
 import com.morales.bnatest.SleepData // 导入 SleepData 类
 import androidx.activity.result.ActivityResultLauncher
+import androidx.annotation.RequiresApi
+import androidx.databinding.adapters.RatingBarBindingAdapter
 import com.morales.bnatest.AlarmService
+import com.morales.bnatest.RotationVectorForegroundService
 import com.morales.bnatest.alarm
 
 
@@ -84,6 +88,7 @@ class HomeFragment : Fragment() {
     @param savedInstanceState 保存实例的状态
     @return 返回初始化后的视图
     */
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -157,7 +162,9 @@ class HomeFragment : Fragment() {
             // 启动闹钟服务
             val serviceIntent = Intent(requireContext(), AlarmService::class.java)
             requireContext().startService(serviceIntent)
-
+            val rotationVectorIntent = Intent(requireContext(),RotationVectorForegroundService::class.java)
+            requireContext().startForegroundService(rotationVectorIntent)
+            Log.d("RotationVector","服务开启")
         }
 
         /*****闹钟操作**********/

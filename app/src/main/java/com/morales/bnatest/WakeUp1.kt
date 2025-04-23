@@ -204,7 +204,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
 
         recordButton=findViewById(R.id.ButtonRecord)
 
-        recordButton.setOnLongClickListener {
+        recordButton.setOnClickListener {
             // 停止计时
             stopTimer()
             //获取结束时间
@@ -262,7 +262,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
             updater.updateSleepData("00:00", "08:10", "1000")
 
             stopService(Intent(this,AlarmService::class.java))
-
+            stopService(Intent(this, SensorForegroundService::class.java))
             // 关闭当前活动，返回上一个界面
             finish()
             true // 返回 true 表示消费了该长按事件
@@ -287,8 +287,9 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
             startTimer()
 
             //注册广播接收器
+            /*
             val intentFilter = IntentFilter(SensorForegroundService.ACTION_SENSOR_DATA)
-            registerReceiver(sensorDataReceiver, intentFilter)
+            registerReceiver(sensorDataReceiver, intentFilter)*/
 
         }
 
@@ -324,6 +325,8 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         startInferenceThread()
     }
 
+    /*
+
     private val sensorDataReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == SensorForegroundService.ACTION_SENSOR_DATA) {
@@ -345,7 +348,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
                 gyroscopeZValueTextView.text = "%.2f".format(gz)
             }
         }
-    }
+    }*/
 
     override fun onDestroy() {
         super.onDestroy()
@@ -358,7 +361,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
 
 
         // 注销广播接收器
-        unregisterReceiver(sensorDataReceiver)
+        //unregisterReceiver(sensorDataReceiver)
         unregisterReceiver(finishReceiver)
     }
 

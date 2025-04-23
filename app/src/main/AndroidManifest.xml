@@ -49,6 +49,12 @@
             android:exported="false"
             android:foregroundServiceType="location|dataSync" />
 
+        <service
+            android:name=".RotationVectorForegroundService"
+            android:foregroundServiceType="dataSync" />
+
+
+
         <service android:name=".AlarmService" />
 
         <receiver android:name=".AlarmReceiver"

@@ -30,7 +30,16 @@ class SensorForegroundService:Service(),SensorEventListener {
     private var gyroscopeThread: HandlerThread? = null
     private var accelerometerHandler: Handler? = null
     private var gyroscopeHandler: Handler? = null
+    private var sensorsThread:HandlerThread? =null
+    private var sensorsHandler:Handler? = null
 
+    private var ax:Float? = null
+    private var ay:Float? = null
+    private var az:Float?= null
+
+    private var gx:Float? = null
+    private var gy:Float? = null
+    private var gz:Float? = null
 
     //companion定义一个伴生对象，可以被类调用，但是不需要创建类的实例
     companion object {
@@ -48,6 +57,7 @@ class SensorForegroundService:Service(),SensorEventListener {
         const val EXTRA_GX = "extra_x"
         const val EXTRA_GY = "extra_y"
         const val EXTRA_GZ = "extra_z"
+
 
 
     }
@@ -74,6 +84,12 @@ class SensorForegroundService:Service(),SensorEventListener {
             gyroscopeHandler = Handler(looper)
         }
 
+        //获取传感器数据处理线程
+        sensorsThread =HandlerThread("sensors").apply{
+            start()
+            sensorsHandler = Handler(looper)
+        }
+
         //获取PowerManager服务
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
 
@@ -89,6 +105,8 @@ class SensorForegroundService:Service(),SensorEventListener {
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
         Log.d("startForeground","通知启动成功")
+
+
     }
 
     /**
@@ -113,40 +131,24 @@ class SensorForegroundService:Service(),SensorEventListener {
      * @return：无
      * */
     override fun onSensorChanged(event: SensorEvent) {
-        /*
-        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            val x = event.values[0]
-            val y = event.values[1]
-            val z = event.values[2]
-
-
-            //调用具体的函数——执行将数据发送给python端的操作
-            sendAccelerometerDataToPython(x, y, z)
-
-            //发送广播、
-            val intent = Intent(ACTION_SENSOR_DATA)
-            intent.putExtra(EXTRA_X, x)
-            intent.putExtra(EXTRA_Y, y)
-            intent.putExtra(EXTRA_Z, z)
-            sendBroadcast(intent)
-        }*/
 
         when (event.sensor.type) {
+
             Sensor.TYPE_ACCELEROMETER -> {
-                val x = event.values[0]
-                val y = event.values[1]
-                val z = event.values[2]
+                ax = event.values[0]
+                ay = event.values[1]
+                az = event.values[2]
 
                 // 在加速度计线程中处理数据
                 accelerometerHandler?.post {
                     // 调用发送到 Python 端的方法
-                    sendAccelerometerDataToPython(x, y, z)
+                    sendAccelerometerDataToPython(ax!!, ay!!, az!!)
 
                     // 发送广播
                     val intent = Intent(ACTION_SENSOR_DATA).apply {
-                        putExtra(EXTRA_X, x)
-                        putExtra(EXTRA_Y, y)
-                        putExtra(EXTRA_Z, z)
+                        putExtra(EXTRA_X, ax)
+                        putExtra(EXTRA_Y, ay)
+                        putExtra(EXTRA_Z, az)
                     }
                     sendBroadcast(intent)
                 }
@@ -164,25 +166,43 @@ class SensorForegroundService:Service(),SensorEventListener {
             }
 
             Sensor.TYPE_GYROSCOPE -> {
-                val x = event.values[0]
-                val y = event.values[1]
-                val z = event.values[2]
+                gx = event.values[0]
+                gy = event.values[1]
+                gz = event.values[2]
 
                 // 在陀螺仪线程中处理数据
                 gyroscopeHandler?.post {
                     // 调用发送到 Python 端的方法
-                    sendGyroscpeDataToPython(x,y,z)
+                    sendGyroscpeDataToPython(gx!!, gy!!, gz!!)
 
                     // 发送广播
                     val intent = Intent(ACTION_SENSOR_DATA).apply {
-                        putExtra(EXTRA_GX, x)
-                        putExtra(EXTRA_GY, y)
-                        putExtra(EXTRA_GZ, z)
+                        putExtra(EXTRA_GX, gx)
+                        putExtra(EXTRA_GY, gy)
+                        putExtra(EXTRA_GZ, gz)
                     }
                     sendBroadcast(intent)
                 }
             }
         }
+
+
+        /***这段代码记录***/
+
+
+       // Log.d("sensor","加速度计数据: ax=$ax, ay=$ay, az=$az,陀螺仪数据: gx=$gx, gy=$gy, gz=$gz")
+        if (ax != null && ay != null && az != null && gx != null && gy != null && gz != null) {
+            sensorsHandler?.post{
+                sendDataOfSensorsToPython(ax!!, ay!!, az!!, gx!!, gy!!, gz!!)
+            }
+        }
+
+
+
+      // Log.d("sensor","加速度计数据: ax=$ax, ay=$ay, az=$az,陀螺仪数据: gx=$gx, gy=$gy, gz=$gz")
+        //每次只能处理一种类型的数据
+        //构建中间变量以保存
+
     }
 
     /**
@@ -294,6 +314,27 @@ class SensorForegroundService:Service(),SensorEventListener {
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "调用 Python 处理失败", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * function:将数据发送给python去保存
+     * param:(1-3)accelerometer XYZ
+     *       (4-6)gyroscope XYZ
+     * return:null
+     * */
+
+    private fun sendDataOfSensorsToPython(ax:Float,ay:Float,az:Float,gx:Float,gy:Float,gz:Float){
+        try {
+            if (!Python.isStarted()) {
+                Python.start(AndroidPlatform(this))
+            }
+            val python = Python.getInstance()//得到运行环境
+            val pyModule = python.getModule("sensorAccAndGy")
+            pyModule.callAttr("saveSensorDataToCSV", ax.toDouble(), ay.toDouble(), az.toDouble(),gx.toDouble(), gy.toDouble(), gz.toDouble())
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "调用 Python 处理失败sensor", Toast.LENGTH_SHORT).show()
         }
     }
 
