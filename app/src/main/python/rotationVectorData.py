@@ -7,7 +7,7 @@ import math
 
 
 sampling = 50
-file_path = "/data/data/com.morales.bnatest/files/chaquopy/rotation_data.csv"
+file_path = "/data/data/com.morales.bnatest/files/chaquopy/rotation_data_test424.csv"
 
 directory = os.path.dirname(file_path)
 if not os.path.exists(directory):

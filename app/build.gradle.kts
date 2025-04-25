@@ -46,6 +46,7 @@ android {
                 // A requirement specifier, with or without a version number:
                 install("numpy")
                 install("pandas")
+                install("scipy")
             }
         }
     }

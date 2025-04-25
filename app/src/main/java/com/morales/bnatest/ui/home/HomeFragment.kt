@@ -162,9 +162,6 @@ class HomeFragment : Fragment() {
             // 启动闹钟服务
             val serviceIntent = Intent(requireContext(), AlarmService::class.java)
             requireContext().startService(serviceIntent)
-            val rotationVectorIntent = Intent(requireContext(),RotationVectorForegroundService::class.java)
-            requireContext().startForegroundService(rotationVectorIntent)
-            Log.d("RotationVector","服务开启")
         }
 
         /*****闹钟操作**********/

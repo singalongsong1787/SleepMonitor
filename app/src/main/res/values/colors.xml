@@ -38,6 +38,7 @@
     <color name="item_weekdays_unselceted">#BBBFCB</color>
     <color name="item_weekdays_selected">#6A8CD6</color>
     <color name="alarm_background">#23253C</color>
+    <color name="roll_View">#937AE2</color>
 </resources>
 
 

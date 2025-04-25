@@ -65,4 +65,33 @@ class background(private val context: Context) {
         return closestDateKey
     }
 
+    fun creat_testPrefs(){
+
+        saveTimeAndIntentsityToPrefs("00:24:03",0.012073709635700933)
+        saveTimeAndIntentsityToPrefs("00:31:07",0.07007782320969118)
+        saveTimeAndIntentsityToPrefs("01:05:27",0.03983172478162306)
+        saveTimeAndIntentsityToPrefs("04:51:44",0.15407832015650702)
+
+    }
+
+
+    private fun saveTimeAndIntentsityToPrefs( key: String, value: Any) {
+        val sharedPreferences: SharedPreferences = context.getSharedPreferences("StatusOfRollPrefs_test", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
+        when (value) {
+            is String -> editor.putString(key, value)
+            is Int -> editor.putInt(key, value)
+            is Boolean -> editor.putBoolean(key, value)
+            is Float -> editor.putFloat(key, value)
+            is Long -> editor.putLong(key, value)
+            is Double -> editor.putFloat(key, value.toFloat())
+            else -> throw IllegalArgumentException("不支持的数据类型: ${value.javaClass.name}")
+        }
+
+        editor.apply()
+        Log.d("RollDection","保存成功")
+    }
+
+
 }

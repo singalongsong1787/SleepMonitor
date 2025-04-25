@@ -258,9 +258,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
             //调动其python文件，拿到json
             getWakeUpAndDeepSleep()
 
-            val updater = background(this)
-            updater.updateSleepData("00:00", "08:10", "1000")
-
+            
             stopService(Intent(this,AlarmService::class.java))
             stopService(Intent(this, SensorForegroundService::class.java))
             // 关闭当前活动，返回上一个界面

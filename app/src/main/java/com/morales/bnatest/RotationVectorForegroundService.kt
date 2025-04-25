@@ -50,7 +50,7 @@ class RotationVectorForegroundService:Service(),SensorEventListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // 注册旋转向量传感器
         rotationSensor?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            sensorManager.registerListener(this, it,SensorManager.SENSOR_DELAY_NORMAL)
             Log.d(TAG, "旋转向量传感器已注册")
         } ?: run {
             Log.e(TAG, "旋转向量传感器不可用")

@@ -25,7 +25,7 @@ def addGyroscope_data(x,y,z):
     '''
     添加陀螺仪数据到相应的列表中
     '''
-    file_path = "/data/data/com.morales.bnatest/files/chaquopy/gyroscope417.csv"
+    file_path = "/data/data/com.morales.bnatest/files/chaquopy/gyroscope1.csv"
     timestamp = datetime.now().strftime("%H:%M:%S")
 
     # 确保目录存在
@@ -56,9 +56,9 @@ def addGyroscope_data(x,y,z):
             writer = csv.writer(file)
             if not file_exists:
                 writer.writerow(['Timestamp','gyroscope_data'])
-                logging.info(f"成功写入")
+                #logging.info(f"成功写入")
             writer.writerow([timestamp,indensity])
-            logging.info(f"成功写入")
+            #logging.info(f"成功写入")
 
 
 

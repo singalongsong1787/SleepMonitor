@@ -17,7 +17,7 @@ intensityZ=[]
 sampling=50
 
 #写入文件
-file_path1 = "/data/data/com.morales.bnatest/files/chaquopy/data420.csv"
+file_path1 = "/data/data/com.morales.bnatest/files/chaquopy/data1.csv"
 
 
 # 配置日志
@@ -81,7 +81,7 @@ def add_and_save_accelerometer_data(x, y, z):
 def save_intensities():
     try:
         # 指定文件路径
-        file_path = "/data/data/com.morales.bnatest/files/chaquopy/data420.csv"
+        file_path = "/data/data/com.morales.bnatest/files/chaquopy/data1.csv"
 
         timestamp = datetime.now().strftime("%H:%M:%S")
 
@@ -100,7 +100,7 @@ def save_intensities():
             # 写入最新的 intensityX、intensityY 和 intensityZ 值
             writer.writerow([timestamp,intensityX[-1], intensityY[-1], intensityZ[-1]])
 
-        logging.info(f"Saved intensities to {file_path}")
+       # logging.info(f"Saved intensities to {file_path}")
 
     except Exception as e:
         logging.error(f"Failed to save intensities: {e}")

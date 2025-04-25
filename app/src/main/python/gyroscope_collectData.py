@@ -6,7 +6,7 @@ from datetime import datetime
 import math
 
 sampling = 50
-file_path =  "/data/data/com.morales.bnatest/files/chaquopy/gyroscope_data423.csv"
+file_path =  "/data/data/com.morales.bnatest/files/chaquopy/gyroscope_data_test1.csv"
 
 #检查文件是否存在
 directory = os.path.dirname(file_path)
@@ -35,9 +35,9 @@ def saveDataToCsv(x,y,z):
         writer = csv.writer(file)
         if not file_exists:
             writer.writerow(['Timestamp','gyroscope_data'])
-            logging.info(f"成功写入")
+            #logging.info(f"成功写入")
         writer.writerow([timestamp,mfd])
-        logging.info(f"成功写入")
+        #logging.info(f"成功写入")
 
 
 

@@ -4,6 +4,7 @@ package com.morales.bnatest
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -33,13 +34,10 @@ class SensorForegroundService:Service(),SensorEventListener {
     private var sensorsThread:HandlerThread? =null
     private var sensorsHandler:Handler? = null
 
-    private var ax:Float? = null
-    private var ay:Float? = null
-    private var az:Float?= null
+    private var gyroscopeRollThread:HandlerThread? = null
+    private var gyroscopeRollHandler:Handler? = null
 
-    private var gx:Float? = null
-    private var gy:Float? = null
-    private var gz:Float? = null
+
 
     //companion定义一个伴生对象，可以被类调用，但是不需要创建类的实例
     companion object {
@@ -90,6 +88,11 @@ class SensorForegroundService:Service(),SensorEventListener {
             sensorsHandler = Handler(looper)
         }
 
+        gyroscopeRollThread = HandlerThread("gyroscopeRoll").apply{
+            start()
+            gyroscopeRollHandler = Handler(looper)
+        }
+
         //获取PowerManager服务
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
 
@@ -114,12 +117,14 @@ class SensorForegroundService:Service(),SensorEventListener {
      * */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         accelerometer?.let {
+
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
         }
 
         /*Gyroscope*/
         gyroscope?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            val samplingPeriodUs = 20000
+            sensorManager.registerListener(this, it, samplingPeriodUs)
         }
 
         return START_STICKY
@@ -135,14 +140,14 @@ class SensorForegroundService:Service(),SensorEventListener {
         when (event.sensor.type) {
 
             Sensor.TYPE_ACCELEROMETER -> {
-                ax = event.values[0]
-                ay = event.values[1]
-                az = event.values[2]
+                val ax = event.values[0]
+                val ay = event.values[1]
+                val az = event.values[2]
 
                 // 在加速度计线程中处理数据
                 accelerometerHandler?.post {
                     // 调用发送到 Python 端的方法
-                    sendAccelerometerDataToPython(ax!!, ay!!, az!!)
+                    sendAccelerometerDataToPython(ax, ay, az)
 
                     // 发送广播
                     val intent = Intent(ACTION_SENSOR_DATA).apply {
@@ -166,14 +171,19 @@ class SensorForegroundService:Service(),SensorEventListener {
             }
 
             Sensor.TYPE_GYROSCOPE -> {
-                gx = event.values[0]
-                gy = event.values[1]
-                gz = event.values[2]
+                val gx = event.values[0]
+                val gy = event.values[1]
+                val gz = event.values[2]
 
                 // 在陀螺仪线程中处理数据
                 gyroscopeHandler?.post {
                     // 调用发送到 Python 端的方法
-                    sendGyroscpeDataToPython(gx!!, gy!!, gz!!)
+                    sendGyroscpeDataToPython(gx, gy, gz)
+
+
+                    gyroscopeRollHandler?.post{
+                        rollDectectionToPython(gx,gy,gz)
+                    }
 
                     // 发送广播
                     val intent = Intent(ACTION_SENSOR_DATA).apply {
@@ -190,12 +200,13 @@ class SensorForegroundService:Service(),SensorEventListener {
         /***这段代码记录***/
 
 
+        /*
        // Log.d("sensor","加速度计数据: ax=$ax, ay=$ay, az=$az,陀螺仪数据: gx=$gx, gy=$gy, gz=$gz")
         if (ax != null && ay != null && az != null && gx != null && gy != null && gz != null) {
             sensorsHandler?.post{
                 sendDataOfSensorsToPython(ax!!, ay!!, az!!, gx!!, gy!!, gz!!)
             }
-        }
+        }*/
 
 
 
@@ -317,6 +328,52 @@ class SensorForegroundService:Service(),SensorEventListener {
         }
     }
 
+
+    /**
+     * funtion:调用python代码处理翻身数据
+     * */
+
+    private fun rollDectectionToPython(x: Float, y: Float, z: Float){
+
+        try {
+            if (!Python.isStarted()) {
+                Python.start(AndroidPlatform(this))
+            }
+            val python = Python.getInstance()//得到运行环境
+            val pyModule = python.getModule("RollDection")
+            val result = pyModule.callAttr("dectionRoll", x.toDouble(), y.toDouble(), z.toDouble())
+
+            if (result != null){
+                /*
+                val timeRoll = result.asList()
+                for(time in timeRoll){
+                    Log.d("Roll","翻身时间为${time}")
+                }*/
+
+                val peakList = result.asList().map{item ->
+                    val tuple = item.asList()
+                    //Log.d("RollDection", "时间: tuple: ${tuple}")
+                    val time = tuple[0].toString()
+                    val strength = tuple[1].toDouble()
+                    time to strength  // Kotlin 的 Pair
+                }
+
+                for ((time, strength) in peakList) {
+                    Log.d("RollDection", "时间: $time，强度: $strength")
+                    Log.d("RollDection","timestamp为${time::class.java},strength为${strength::class.java}")
+                    saveTimeAndIntentsityToPrefs(this@SensorForegroundService,time,strength)
+                    Log.d("RollDection","保存成功")
+                }
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "预测翻身，调用 Python 处理失败", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+
     /**
      * function:将数据发送给python去保存
      * param:(1-3)accelerometer XYZ
@@ -336,6 +393,35 @@ class SensorForegroundService:Service(),SensorEventListener {
             e.printStackTrace()
             Toast.makeText(this, "调用 Python 处理失败sensor", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * function:对时间和强度进行保存——保存方式SharedPreferences
+     * @param:(1)时间戳
+     *        (2)翻身强度
+     * @return:无
+     * */
+
+    /**
+     * function:对闹钟配置文件进行修改
+     * @param:(1)文本 （2）key （3）value
+     */
+    private fun saveTimeAndIntentsityToPrefs(context: Context,  key: String, value: Any) {
+        val sharedPreferences: SharedPreferences = context.getSharedPreferences("StatusOfRollPrefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
+        when (value) {
+            is String -> editor.putString(key, value)
+            is Int -> editor.putInt(key, value)
+            is Boolean -> editor.putBoolean(key, value)
+            is Float -> editor.putFloat(key, value)
+            is Long -> editor.putLong(key, value)
+            is Double -> editor.putFloat(key, value.toFloat())
+            else -> throw IllegalArgumentException("不支持的数据类型: ${value.javaClass.name}")
+        }
+
+        editor.apply()
+        Log.d("RollDection","保存成功")
     }
 
 

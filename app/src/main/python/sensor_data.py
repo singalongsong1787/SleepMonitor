@@ -124,7 +124,7 @@ def save_intensities():
 wakeup_threshold=1
 #对觉醒进行判断
 
-file_path1 = "/data/data/com.morales.bnatest/files/chaquopy/data420.csv"
+file_path1 = "/data/data/com.morales.bnatest/files/chaquopy/data425.csv"
 
 '''
 function:拿到开始和结束的时间戳

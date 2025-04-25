@@ -9,10 +9,16 @@ import android.view.View
 import android.graphics.*
 import android.util.Log
 import android.util.TypedValue
+import android.util.Xml
 import androidx.core.content.ContextCompat
 import kotlinx.serialization.json.Json
 import java.util.regex.Pattern
 import android.view.MotionEvent
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
 
 
 //先构造一个wakeUpDeepsleep的类
@@ -69,6 +75,10 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
 
     private var isDragging = false
 
+    //翻身预测
+    private var rollLine = 2f
+
+    private val marginOfRollAx = dpToPx(20f)
 
     //重写onDraw方法，用于在视图上绘制内容
     override fun onDraw(canvas: Canvas){
@@ -77,30 +87,27 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
         canvas.save()
 
 
-        Log.d("SleepChartView","leftRightMargin的值为${leftRightMargin}")
+
 
         data?.let{
             //解析时间
             //val (startTime,endTime) = parseTime(it.start_end)//解析起始时间
-            Log.d("SleepChartView","data不为空")
+
 
             val timePair = parseTime(it.start_end)
             startTime = timePair.first
             endTime = timePair.second
-            Log.d("SleepChartView","开始时间为${startTime}")
-            Log.d("SleepChartView","结束时间为${endTime}")
+
 
             //执行函数，计算起止之间的分钟差
             val totalMinutes = getMinutesDiff(startTime,endTime)
-            Log.d("SleepChartView","总的分钟数为${totalMinutes}")
+
 
             val intervals_wakeUp = parseIntervalList(it.wakeup_interval,totalMinutes)
-            Log.d("SleepChartView","传入的wakeUp的区间为${it.wakeup_interval}")
-            Log.d("SleepChartView","wakeUp的区间为${intervals_wakeUp}")
+
 
             val intervals_deepSleep = parseIntervalList(it.deepsleep_interval,totalMinutes)
-            Log.d("SleepChartView","传入的deepSleep的区间为${it.deepsleep_interval}")
-            Log.d("SleepChartView","deepSleep的区间为${intervals_deepSleep}")
+
 
 
             //绘制起始时间
@@ -110,7 +117,7 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
 
             //绘制中间数字
             drawMiddleNumbers(canvas, totalMinutes,startTime)
-            Log.d("SleepChartView","绘制成功")
+
 
 
             /**-------------------------绘制条形图----------------------**/
@@ -138,7 +145,7 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
             val paint_deepSleep:Paint = paint
             paint_deepSleep.color = Color.WHITE
             drawRect(intervals_deepSleep,PosTop_deepSleep.toFloat(),PosBottom_lightSleep.toFloat(),paint,canvas)
-            Log.d("SleepChartView","deepSleep覆盖成功")
+
 
             val color_deepSleep = ContextCompat.getColor(context, R.color.deepSleep)
             paint.color = color_deepSleep
@@ -185,6 +192,38 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
             }
             drawTextOfTime(line,rectOfTime,paint_textOfTime,canvas)
 
+            //画一条直线横贯开始时间和结束时间
+
+            val paint_roll:Paint = paint
+            val color_roll = ContextCompat.getColor(context, R.color.roll_View)
+            paint_roll.color = color_roll
+
+            canvas.drawLine((leftRightMargin).toFloat(),(height-bottomMargin+marginOfRollAx).toFloat(),
+                (width - leftRightMargin).toFloat(),(height-bottomMargin+marginOfRollAx).toFloat(),paint_roll)
+
+            //绘制文本
+            val paint_rollTex = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textSize = 40f
+                textAlign = Paint.Align.CENTER  //文本将以指定的坐标点为中心进行绘制对其方式
+            }
+            canvas.drawText("翻身",(leftRightMargin - 2*offsetX).toFloat(),(height-bottomMargin+marginOfRollAx).toFloat(),paint_rollTex)
+
+
+            //解析文件
+            val roll_list = parseSharedPreferencesXML(context,"StatusOfRollPrefs_test")
+            Log.d("SleepChartView","parse后的list:${roll_list}")
+            for((time,value) in roll_list){
+                //Log.d("SleepChart","时间的分钟值为${getSecsToMintues(time)}")
+                var timeOfRoll_parse = getSecsToMintues(time)
+                //将其转换为View上的坐标
+                var xPos_Roll = (timeOfRoll_parse - startTime) / totalMinutes *(width - 2 * leftRightMargin) + leftRightMargin
+                drawlineOfRoll(xPos_Roll,100f,paint_roll,canvas)
+                Log.d("SleepChartView","绘制成功")
+            }
+
+
+
         }
     }
 
@@ -222,6 +261,16 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
     private fun getMinutes(time: String): Long {
         val parts = time.split(":")
         return (parts[0].toLong() * 60 + parts[1].toLong())
+    }
+
+
+    /**
+     * function:将时间串转换成秒数(String -> Long)
+     * */
+    private fun getSecsToMintues(time:String):Float{
+        val parts = time.split(":")
+        Log.d("SleepCharts","秒为${parts[2]}")
+        return(parts[0].toLong() * 60 + parts[1].toLong() +(parts[2].toFloat() / 60))
     }
 
     /**
@@ -299,9 +348,9 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
 
                 //保存相关内容
                 hourlist.add(adjustHour)
-                Log.d("SleepChartView","中间的时刻为${adjustHour}")
+
                 xPosList.add(xPos)
-                Log.d("SleepChartView","横坐标为${xPos}")
+
             }
 
         }
@@ -424,7 +473,7 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
                 }
             }
         }
-        Log.d("wakeUpAndDeepSleep", "latestDate: $latestDate")
+
 
         // 判断是否传入了指定日期
         if (specifiedDate != null) {
@@ -441,11 +490,11 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
                     // 使用 kotlinx.serialization 解析 JSON 字符串
                     val json = Json { ignoreUnknownKeys = true }
                     val result = json.decodeFromString<wakeUpAndDeepSleep>(jsonString)
-                    Log.d("wakeUpAndDeepSleep", "Json解析成功")
+                   // Log.d("wakeUpAndDeepSleep", "Json解析成功")
                     return@let result
                 }
             } catch (e: Exception) {
-                Log.e("SleepData", "解析 JSON 数据出错: ${e.message}", e)
+                //Log.e("SleepData", "解析 JSON 数据出错: ${e.message}", e)
             }
             null
         }
@@ -500,6 +549,15 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
         val line =  Line(startX, startY, stopX, stopY)
         return line
     }
+    private fun drawlineOfRoll(xPos:Float,intentsity:Float,paint:Paint,canvas:Canvas){
+        val startX = xPos
+        val startY =(height-bottomMargin+ marginOfRollAx) + intentsity / 2
+        val stopX = xPos
+        val stopY =(height-bottomMargin+ marginOfRollAx) - intentsity / 2
+        canvas.drawLine(startX,startY,stopX,stopY,paint)
+    }
+
+
 
     //画一个文本框（矩形框）
     /**
@@ -632,8 +690,42 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
         invalidate() // 触发重绘
     }
 
+
+    private fun parseSharedPreferencesXML(context:Context,prefsName:String):List<Pair<String,Float>>{
+       // val result = mutableListOf<Pair<String, Any>>()
+        val entries = mutableListOf<Pair<String, Float>>()
+        val prefsDir = File(context.filesDir.parent, "shared_prefs")
+        val prefsFile = File(prefsDir, "$prefsName.xml")
+
+        if (!prefsFile.exists()) {
+            return entries
+        }
+
+        val parser: XmlPullParser = Xml.newPullParser()
+        try {
+            parser.setInput(FileInputStream(prefsFile), null)
+            var eventType = parser.eventType
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                if (eventType == XmlPullParser.START_TAG && parser.name == "float") {
+                    val name = parser.getAttributeValue(null, "name")
+                    val valueStr = parser.getAttributeValue(null, "value")
+                    val value = valueStr?.toFloatOrNull()
+                    if (name != null && value != null) {
+                        entries.add(Pair(name, value))
+                    }
+                }
+                eventType = parser.next()
+            }
+        } catch (e: XmlPullParserException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return entries
+
+    }
+
     //做一个直线对象的类
     inner  class Line(val startX: Float, val startY: Float, val stopX: Float, val stopY: Float)
-
 }
 
