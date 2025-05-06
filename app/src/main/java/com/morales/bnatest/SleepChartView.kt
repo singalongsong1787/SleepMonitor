@@ -211,7 +211,7 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
 
 
             //解析文件
-            val roll_list = parseSharedPreferencesXML(context,"StatusOfRollPrefs_test")
+            val roll_list = parseSharedPreferencesXML(context,"StatusOfRollPrefs_1")
             Log.d("SleepChartView","parse后的list:${roll_list}")
             for((time,value) in roll_list){
                 //Log.d("SleepChart","时间的分钟值为${getSecsToMintues(time)}")

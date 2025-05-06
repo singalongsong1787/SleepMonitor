@@ -407,7 +407,7 @@ class SensorForegroundService:Service(),SensorEventListener {
      * @param:(1)文本 （2）key （3）value
      */
     private fun saveTimeAndIntentsityToPrefs(context: Context,  key: String, value: Any) {
-        val sharedPreferences: SharedPreferences = context.getSharedPreferences("StatusOfRollPrefs", Context.MODE_PRIVATE)
+        val sharedPreferences: SharedPreferences = context.getSharedPreferences("StatusOfRollPrefs_1", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
 
         when (value) {

@@ -33,6 +33,7 @@ import androidx.databinding.adapters.RatingBarBindingAdapter
 import com.morales.bnatest.AlarmService
 import com.morales.bnatest.RotationVectorForegroundService
 import com.morales.bnatest.alarm
+import com.morales.bnatest.alarm_content
 
 
 class HomeFragment : Fragment() {
@@ -58,6 +59,11 @@ class HomeFragment : Fragment() {
 
     //声明所储存的类
     private lateinit var currentSleepData:SleepData
+    //闹钟文本
+    private lateinit var alarmTextView: TextView
+    //使用定时器定时刷新UI
+    private lateinit var handler_alarm:Handler
+    private lateinit var updateRunnable: Runnable
 
 
 
@@ -88,6 +94,7 @@ class HomeFragment : Fragment() {
     @param savedInstanceState 保存实例的状态
     @return 返回初始化后的视图
     */
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -102,12 +109,16 @@ class HomeFragment : Fragment() {
         timeTextView = binding.homeClock//时钟
         handler.post(updateTimeRunnable)//启动定时任务，更新时间
 
+        handler_alarm = Handler(Looper.getMainLooper())
+
         val root: View = binding.root
 
         //找到按钮
         val wakeupButton = binding.wakeupButton
 
         val iconAlarmColck = binding.iconAlarm
+
+        alarmTextView = binding.alarmContentHome
 
         //设置按钮点击事件(设计监听器)
         wakeupButton.setOnClickListener {
@@ -140,21 +151,7 @@ class HomeFragment : Fragment() {
                 // 使用新 API 发起权限请求
                 requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             } else {
-                /*
-                //获取当前的时间和日期
-                val currentTime = getCurrentTime()
-                val currentDate = getCurrentDate()
-                // 打印日志
-                Log.d("HomeFragment", "点击时间: 日期 - $currentDate, 时间 - $currentTime")
 
-
-                //创建SleepData对象
-                val currentSleepData = SleepData(
-                    date = currentDate,
-                    startTime = currentTime,
-                    endTime = "", // 这里结束时间暂时为空，后续可根据实际情况更新
-                    snoreDataPath = "" // 这里鼾声保存路径暂时为空，后续可根据实际情况更新
-                )*/
 
                 startRecording()//后面有函数实现
             }
@@ -164,12 +161,49 @@ class HomeFragment : Fragment() {
             requireContext().startService(serviceIntent)
         }
 
+        /**闹钟文本操作**/
+
+
+        updateRunnable = object : Runnable{
+            override fun run(){
+                //获得周几
+                val alarmContent = alarm_content(requireContext())
+
+                //获得是否开启
+                val alarm_isOpen =alarmContent.isOpenEnabled()
+                Log.d("weekDay","闹钟是否开启${alarm_isOpen}")
+
+                var weekDay = alarmContent.getAdjustedDayOfWeek()
+                Log.d("weekDay","闹钟启动的日期为${weekDay}")
+                var isExisitDay = alarmContent.isWeekdayEnabled(weekDay)
+                Log.d("weekDay","闹钟是否启动${isExisitDay}")
+
+                if(!isExisitDay || !alarm_isOpen) {  //不开启
+                    val alamText = "${weekDay}未开启闹钟"
+                    alarmTextView.text = alamText
+                }else{
+                    val alarmTextTime = alarmContent.getTimeDifferenceDescription()
+                    alarmTextView.text = alarmTextTime
+                }
+                handler_alarm.postDelayed(this, 1_000) // 每 60 秒刷新一次
+            }
+
+        }
+
+        handler_alarm.post(updateRunnable)
+
+
+
+
         /*****闹钟操作**********/
         iconAlarmColck.setOnClickListener(){
-            Log.d("alarm","点击了下去")
+            //Log.d("alarm","点击了下去")
             val intent = Intent(requireContext(), alarm::class.java)
             startActivity(intent)
+            //weekDay = alarmContent.getAdjustedDayOfWeek()
+
         }
+
         return root
     }
 

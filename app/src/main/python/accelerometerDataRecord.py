@@ -17,7 +17,7 @@ intensityZ=[]
 sampling=50
 
 #写入文件
-file_path1 = "/data/data/com.morales.bnatest/files/chaquopy/data1.csv"
+file_path1 = "/data/data/com.morales.bnatest/files/chaquopy/data426.csv"
 
 
 # 配置日志
@@ -81,7 +81,7 @@ def add_and_save_accelerometer_data(x, y, z):
 def save_intensities():
     try:
         # 指定文件路径
-        file_path = "/data/data/com.morales.bnatest/files/chaquopy/data1.csv"
+        file_path = "/data/data/com.morales.bnatest/files/chaquopy/data426.csv"
 
         timestamp = datetime.now().strftime("%H:%M:%S")
 
