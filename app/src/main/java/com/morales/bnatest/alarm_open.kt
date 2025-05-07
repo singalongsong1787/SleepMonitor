@@ -123,22 +123,6 @@ class alarm_open: AppCompatActivity() {
 
         //结束闹钟的长按监听器
         buttonOfEnd.setOnLongClickListener {
-            // 停止振动
-            if (::mVibrator.isInitialized) {
-                mVibrator.cancel()
-            }
-
-            // 停止并释放 MediaPlayer
-            if (::mediaPlayer.isInitialized) {
-                try {
-                    if (mediaPlayer.isPlaying) {
-                        mediaPlayer.stop()
-                    }
-                    mediaPlayer.release()
-                } catch (e: Exception) {
-                    Log.e("AlarmService", "MediaPlayer 释放失败: ${e.message}")
-                }
-            }
 
             // 发送广播通知 WakeupActivity 结束
             val intent = Intent("com.example.ACTION_FINISH_WAKEUP")
@@ -165,34 +149,60 @@ class alarm_open: AppCompatActivity() {
             sendBroadcast(broadcastIntent)
             Log.d("AlarmService","闹钟再响的时间戳为${minutesLaterMillis}")
 
-            // 停止振动
-            if (::mVibrator.isInitialized) {
-                mVibrator.cancel()
-            }
-
-            // 停止并释放 MediaPlayer
-            if (::mediaPlayer.isInitialized) {
-                try {
-                    if (mediaPlayer.isPlaying) {
-                        mediaPlayer.stop()
-                    }
-                    mediaPlayer.release()
-                } catch (e: Exception) {
-                    Log.e("AlarmService", "MediaPlayer 释放失败: ${e.message}")
-                }
-            }
-
             finish()
 
         }
 
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        // 确保资源释放
+    /**release mVibration and mediaPlayer**/
+    override fun onStop(){
+        super.onStop()
+        // 停止振动
         if (::mVibrator.isInitialized) {
             mVibrator.cancel()
+            Log.e("AlarmService_releaseStop", "mVibation成功取消")
+        }
+
+        // 停止并释放 MediaPlayer
+        if (::mediaPlayer.isInitialized) {
+            try {
+                if (mediaPlayer.isPlaying) {
+                    mediaPlayer.stop()
+                }
+                mediaPlayer.release()
+                Log.e("AlarmService_releaseStop", "mediaPlayer成功取消")
+            } catch (e: Exception) {
+                Log.e("AlarmService_releaseStop", "MediaPlayer 释放失败: ${e.message}")
+            }
+        }
+
+    }
+
+
+
+    /**释放闹钟服务资源**/
+    override fun onDestroy() {
+        super.onDestroy()
+
+
+        // 停止振动
+        if (::mVibrator.isInitialized) {
+            mVibrator.cancel()
+            Log.e("AlarmService_releaseDestroy", "mVibation成功取消")
+        }
+
+        // 停止并释放 MediaPlayer
+        if (::mediaPlayer.isInitialized) {
+            try {
+                if (mediaPlayer.isPlaying) {
+                    mediaPlayer.stop()
+                }
+                mediaPlayer.release()
+                Log.e("AlarmService_releaseDestroy", "meidaPlayer成功取消")
+            } catch (e: Exception) {
+                Log.e("AlarmService_releaseDestroy", "MediaPlayer 释放失败: ${e.message}")
+            }
         }
 
     }

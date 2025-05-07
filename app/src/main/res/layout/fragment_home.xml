@@ -42,7 +42,7 @@
         android:layout_height="wrap_content"
         android:text="周一闹钟未开启"
         android:textColor="@color/white"
-        android:textSize="20sp"
+        android:textSize="15sp"
         android:layout_marginTop="25dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

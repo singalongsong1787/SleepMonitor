@@ -172,7 +172,7 @@ class HomeFragment : Fragment() {
 
                 //获得是否开启
                 val alarm_isOpen =alarmContent.isOpenEnabled()
-                Log.d("weekDay","闹钟是否开启${alarm_isOpen}")
+
 
                 var weekDay = alarmContent.getAdjustedDayOfWeek()
                 Log.d("weekDay","闹钟启动的日期为${weekDay}")

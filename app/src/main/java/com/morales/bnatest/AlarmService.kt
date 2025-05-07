@@ -49,14 +49,24 @@ class AlarmService:Service (){
         }
     }
 
+    private val alarmCancelReceiver = object : BroadcastReceiver(){
+        override fun onReceive(context: Context?, intent: Intent?)  {
+            Log.d("AlarmPending","接收broadcast成功")
+            cancelAlarm()
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
         // 初始化 alarmConfig
         alarmConfig = data_AlarmConfig_init(alarmConfig)
-        Log.d("AlarmService","数据类一系列的设置${alarmConfig}")
+        Log.d("weekDay","数据类一系列的设置${alarmConfig}")
         val filter = IntentFilter("com.example.snooze")
         registerReceiver(snoozeReceiver, filter, RECEIVER_NOT_EXPORTED)
+
+        val filter_alarmCancel = IntentFilter("com.example.alarmCancel")
+        registerReceiver(alarmCancelReceiver,filter_alarmCancel, RECEIVER_NOT_EXPORTED)
 
     }
 
@@ -71,64 +81,6 @@ class AlarmService:Service (){
 
         var intent:Intent? = null
 
-        /*
-        if(alarmConfig.isAwake==false){
-             intent = Intent(this, AlarmReceiver::class.java).apply{
-                 action = "com.morales.ACTION_ALARM_NORMAL"
-                putExtra("alarm_isVibration",alarmConfig.isVibration)
-                Log.d("AlarmService","在Service的isVibration为${alarmConfig.isVibration}")
-                putExtra("alarm_volume",alarmConfig.volume)
-                putExtra("alarm_bell",alarmConfig.bell)//发送铃声到广播接收器
-                putExtra("alarm_isAwake",alarmConfig.isAwake)
-                putExtra("alarm_awakeTime", extractMinutes(alarmConfig.awakeTime))
-            }
-
-
-            //创建广播的Intent
-            pendingIntent = PendingIntent.getBroadcast(
-                this,
-                ALARM_REQUEST_CODE,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            Log.d("AlarmService", "PendingIntent0: $pendingIntent")
-
-        }else{
-            Log.d("AlarmService", "进入轻唤醒分支，isAwake=true")
-                intent = Intent(this, AlarmAwakeReceiver::class.java).apply{
-                    action = "com.morales.ACTION_ALARM_AWAKE"
-                    putExtra("alarm_isVibration",alarmConfig.isVibration)
-                    Log.d("AlarmService","在Service的isVibration为${alarmConfig.isVibration}")
-                    putExtra("alarm_volume",alarmConfig.volume)
-                    putExtra("alarm_bell",alarmConfig.bell)//发送铃声到广播接收器
-                    putExtra("alarm_isAwake",alarmConfig.isAwake)
-                    putExtra("alarm_awakeTime", extractMinutes(alarmConfig.awakeTime))
-            }
-
-            //创建广播的Intent
-            pendingIntent = PendingIntent.getBroadcast(
-                this,
-                ALARM_AWAKE_REQUEST_CODE,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            Log.d("AlarmService", "PendingIntent1: $pendingIntent")
-
-
-        }*/
-
-
-
-        /*
-
-        //创建广播的Intent
-        pendingIntent = PendingIntent.getBroadcast(
-            this,
-            ALARM_REQUEST_CODE,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        Log.d("AlarmService", "PendingIntent: $pendingIntent")*/
 
 
         val weekday = getDayOfWeek(alarmConfig.timePicker_h,alarmConfig.timePicker_minute)
@@ -178,22 +130,20 @@ class AlarmService:Service (){
             }
         }
 
+
         val requestCode = if (alarmConfig.isAwake) {
-            // 生成唯一码（示例：当前时间秒数 + 固定偏移）
-            (System.currentTimeMillis() % 100000).toInt() + 1000
+            ALARM_AWAKE_REQUEST_CODE
         } else {
             ALARM_REQUEST_CODE
         }
-
-        Log.d("AlarmService", "设置闹钟 Intent = ${intent.component?.className}")
-        Log.d("AlarmService", "PendingIntent action = ${intent.action}")
 
         val pendingIntent = PendingIntent.getBroadcast(
             this,
             requestCode,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_IMMUTABLE else 0
         )
+
 
         val currentTimeMillis = System.currentTimeMillis()//当前的时间戳
         var calendar = Calendar.getInstance().apply {
@@ -258,12 +208,15 @@ class AlarmService:Service (){
             pendingIntent
         )
 
+        /*
         Log.d("AlarmService", "正在设置闹钟，receiver = ${intent.component?.className}")
         Log.d("AlarmService", "设置时间 = ${calendar.timeInMillis}")
         Log.d("AlarmService", "PendingIntent = $pendingIntent")
         Log.d(TAG, "闹钟首次触发时间: ${calendar.timeInMillis}")
         Log.d(TAG, "PendingIntent created: ${pendingIntent.hashCode()}")
-        Log.d(TAG, "Intent details: ${intent.component?.className} | ${intent.action}")
+        Log.d(TAG, "Intent details: ${intent.component?.className} | ${intent.action}")*/
+
+        Log.d("AlarmPending", "PendingIntent = $pendingIntent")
 
     }
 
@@ -273,22 +226,30 @@ class AlarmService:Service (){
      * funtion:结束AlarmManager
      * */
     private fun cancelAlarm() {
-        // 取消两种类型的闹钟
         listOf(ALARM_REQUEST_CODE, ALARM_AWAKE_REQUEST_CODE).forEach { requestCode ->
             val intent = if (requestCode == ALARM_AWAKE_REQUEST_CODE) {
-                Intent(this, AlarmAwakeReceiver::class.java)
+                Intent(this, AlarmAwakeReceiver::class.java).apply {
+                    action = "com.morales.ACTION_ALARM_AWAKE"
+                }
             } else {
-                Intent(this, AlarmReceiver::class.java)
+                Intent(this, AlarmReceiver::class.java).apply {
+                    action = "com.morales.ACTION_ALARM_NORMAL"
+                }
             }
-            val pendingIntent = PendingIntent.getBroadcast(
+
+            val cancelPendingIntent = PendingIntent.getBroadcast(
                 this,
                 requestCode,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_IMMUTABLE else 0
+                PendingIntent.FLAG_UPDATE_CURRENT or
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_IMMUTABLE else 0
             )
-            alarmManager.cancel(pendingIntent)
+
+            alarmManager.cancel(cancelPendingIntent)
+            Log.d("AlarmPending", "Cancelled alarm with requestCode=$requestCode")
         }
     }
+
 
 
     /**

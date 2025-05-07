@@ -112,8 +112,9 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
 
             //绘制起始时间
             //1.画布，开始时间，x坐标轴
-            drawTime(canvas, startTime, (leftRightMargin - 2*offsetX).toFloat())
-            drawTime(canvas, endTime, (width - leftRightMargin + 2*offsetX).toFloat())
+            paint.color = Color.WHITE
+            drawTime(canvas, startTime, (leftRightMargin - 2*offsetX).toFloat(),paint)
+            drawTime(canvas, endTime, (width - leftRightMargin + 2*offsetX).toFloat(),paint)
 
             //绘制中间数字
             drawMiddleNumbers(canvas, totalMinutes,startTime)
@@ -287,7 +288,7 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
     /**
      * function:在指定时刻绘制时间文本（主要是起止时刻）
      * */
-    private fun drawTime(canvas: Canvas, minutes: Long, x: Float) {
+    private fun drawTime(canvas: Canvas, minutes: Long, x: Float,paint: Paint) {
         val h = (minutes / 60).toInt()
         val m = (minutes % 60).toInt()
         // 格式化为时间字符串（如 "10:30"）

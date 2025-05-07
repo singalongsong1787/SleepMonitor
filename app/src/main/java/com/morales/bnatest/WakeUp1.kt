@@ -4,6 +4,8 @@ package com.morales.bnatest
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.pm.PackageManager
@@ -56,6 +58,7 @@ import java.io.FileOutputStream
 import kotlin.experimental.and
 import android.os.PowerManager
 import android.provider.Settings
+import android.view.MotionEvent
 
 class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
     //时间显示对象
@@ -146,6 +149,10 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
     private lateinit var alarmTextView:TextView
 
 
+
+
+
+
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -226,70 +233,43 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
 
         recordButton=findViewById(R.id.ButtonRecord)
 
-        recordButton.setOnClickListener {
-            // 停止计时
-            stopTimer()
-            //获取结束时间
-            val endTime = getCurrentTime()
-            //更新SleepData对象的endTime属性
-            sleepData = sleepData.copy(endTime = endTime)
-
-
-            //获得结束日期
-            // 获取当前日期并更新 sleepData 的 endDate 属性
-            val endDate = getCurrentDate()
-            sleepData = sleepData.copy(endDate = endDate)
-
-            //计算睡眠时间
-            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-            try {
-                val startDate = timeFormat.parse(sleepData.startTime)
-                val endDate = timeFormat.parse(sleepData.endTime)
-                val durationMillis = endDate.time - startDate.time
-                val hours = TimeUnit.MILLISECONDS.toHours(durationMillis)
-                val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis) % 60
-                val sleepDurationStr = String.format("%02d:%02d", hours, minutes)
-                sleepData = sleepData.copy(sleepDuration = sleepDurationStr)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                sleepData = sleepData.copy(sleepDuration = "计算失败")
-            }
-
-            //计算鼾声时间
-            val totalCountStr: String = totalCount.toString()
-            sleepData=sleepData.copy(snoringDuration = totalCountStr )
-
-            // 日志查看属性信息
-            Log.d("WakeUp1", "日期: ${sleepData.date}")
-            Log.d("WakeUp1", "开始时间: ${sleepData.startTime}")
-            Log.d("WakeUp1", "结束时间: ${sleepData.endTime}")
-            Log.d("WakeUp1","创建文件路径：${sleepData.snoreDataPath}")
-            Log.d("WakeUp1", "睡眠时间: ${sleepData.sleepDuration}")
-            Log.d("WakeUp1","结束日期：${sleepData.endDate}")
-            Log.d("WakeUp1","鼾声持续时间：${sleepData.snoringDuration}")
-
-            //保存SleepData到SharedPerferences
-            saveSleepDataToSharedPreferences(sleepData)
-            Log.d("DataSave","保存成功")
-
-            //将更新后的SleepData对象返回给调用者（Intent通信）
-            val resultIntent = Intent()
-            resultIntent.putExtra("updatedSleepData", sleepData)
-            setResult(android.app.Activity.RESULT_OK, resultIntent)
-
-            //调动其python文件，拿到json
-            getWakeUpAndDeepSleep()
-
-            
-            stopService(Intent(this,AlarmService::class.java))
-            stopService(Intent(this, SensorForegroundService::class.java))
+        /*
+        recordButton.setOnLongClickListener{
             // 关闭当前活动，返回上一个界面
             finish()
             true // 返回 true 表示消费了该长按事件
 
+        }*/
 
+        val LONG_PRESS_THRESHOLD = 3000L // 3秒
+        val handler = Handler(Looper.getMainLooper())
+        var isTriggered = false
 
+        val longPressRunnable = Runnable {
+            isTriggered = true
+
+            Log.d("CustomLongPress", "已按住 3 秒，执行操作")
+            finish()
         }
+
+        recordButton.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    isTriggered = false
+                    handler.postDelayed(longPressRunnable, LONG_PRESS_THRESHOLD)
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    handler.removeCallbacks(longPressRunnable)
+                    if (!isTriggered) {
+                        Log.d("CustomLongPress", "未达到 3 秒，取消操作")
+                    }
+                }
+            }
+            true
+        }
+
+
+
 
 
         // 将 updateTimeRunnable 添加到 handler 中，开始更新时间显示
@@ -370,6 +350,69 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         }
     }*/
 
+    /**执行原长按监听器的操作**/
+    override fun onStop() {
+        super.onStop()
+        // 停止计时
+        stopTimer()
+        //获取结束时间
+        val endTime = getCurrentTime()
+        //更新SleepData对象的endTime属性
+        sleepData = sleepData.copy(endTime = endTime)
+        //获得结束日期
+        // 获取当前日期并更新 sleepData 的 endDate 属性
+        val endDate = getCurrentDate()
+        sleepData = sleepData.copy(endDate = endDate)
+
+        //计算睡眠时间
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        try {
+            val startDate = timeFormat.parse(sleepData.startTime)
+            val endDate = timeFormat.parse(sleepData.endTime)
+            val durationMillis = endDate.time - startDate.time
+            val hours = TimeUnit.MILLISECONDS.toHours(durationMillis)
+            val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis) % 60
+            val sleepDurationStr = String.format("%02d:%02d", hours, minutes)
+            sleepData = sleepData.copy(sleepDuration = sleepDurationStr)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            sleepData = sleepData.copy(sleepDuration = "计算失败")
+        }
+
+        //计算鼾声时间
+        val totalCountStr: String = totalCount.toString()
+        sleepData=sleepData.copy(snoringDuration = totalCountStr )
+
+        // 日志查看属性信息
+        Log.d("WakeUp1", "日期: ${sleepData.date}")
+        Log.d("WakeUp1", "开始时间: ${sleepData.startTime}")
+        Log.d("WakeUp1", "结束时间: ${sleepData.endTime}")
+        Log.d("WakeUp1","创建文件路径：${sleepData.snoreDataPath}")
+        Log.d("WakeUp1", "睡眠时间: ${sleepData.sleepDuration}")
+        Log.d("WakeUp1", "睡眠时间: ${sleepData.sleepDuration}")
+        Log.d("WakeUp1","结束日期：${sleepData.endDate}")
+        Log.d("WakeUp1","鼾声持续时间：${sleepData.snoringDuration}")
+
+        //保存SleepData到SharedPerferences
+        saveSleepDataToSharedPreferences(sleepData)
+        Log.d("DataSave","保存成功")
+
+        //将更新后的SleepData对象返回给调用者（Intent通信）
+        val resultIntent = Intent()
+        resultIntent.putExtra("updatedSleepData", sleepData)
+        setResult(android.app.Activity.RESULT_OK, resultIntent)
+
+        //调动其python文件，拿到json
+        getWakeUpAndDeepSleep()
+
+
+        stopService(Intent(this,AlarmService::class.java))
+        stopService(Intent(this, SensorForegroundService::class.java))
+
+        cancelPendingIntent()
+
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(updateTimeRunnable)
@@ -383,6 +426,21 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         // 注销广播接收器
         //unregisterReceiver(sensorDataReceiver)
         unregisterReceiver(finishReceiver)
+
+        //查看是否只从了该操作
+        Toast.makeText(this,"Activity被销毁",Toast.LENGTH_SHORT).show()
+}
+
+override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("timer_textView",timerTextView.text.toString())
+        outState.putString("alarm_textView",alarmTextView.text.toString())
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle){
+        super.onRestoreInstanceState(savedInstanceState)
+        timerTextView.text = savedInstanceState.getString("timer_textView")
+        alarmTextView.text = savedInstanceState.getString("alarm_textView")
     }
 
     private fun startForegroundService() {
@@ -858,6 +916,27 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         }
 
     }
+
+    //这里取消掉闹钟
+    /**
+     * function:取消闹钟，不能单纯的释放alarmSerice，需要取消掉特定的pendingIntent
+     * @param:无
+     * @return：无
+     * */
+    private fun cancelPendingIntent() {
+
+        Log.d("AlarmPending","准备发送broadcast")
+
+
+        //注册广播
+        val broadcastIntent = Intent("com.example.alarmCancel").apply{
+
+        }
+        sendBroadcast(broadcastIntent)
+        Log.d("AlarmPending","发送broadcast成功")
+
+    }
+
 
 }
 

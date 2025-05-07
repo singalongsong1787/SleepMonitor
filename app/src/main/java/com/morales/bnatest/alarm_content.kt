@@ -60,19 +60,29 @@ class alarm_content(private val context: Context) {
      * */
 
     fun isWeekdayEnabled(day: String): Boolean {
-        val sharedPref = context.getSharedPreferences("alarm_config", Context.MODE_PRIVATE)
-
-        // 读取 set 类型的字符串集合（默认为空集合）
-        val weekdaysSet = sharedPref.getStringSet("weekdays", emptySet()) ?: emptySet()
-
-        return weekdaysSet.contains(day)
+        val sharedPref = context.getSharedPreferences("alarm_weekdays", Context.MODE_PRIVATE)
+        return sharedPref.getBoolean(day,false)
     }
 
+
+    /**
+     * function:判断闹钟总开关是否开启
+     * @return：true OR false
+     * */
     fun isOpenEnabled():Boolean{
         val sharedPref = context.getSharedPreferences("alarm_config", Context.MODE_PRIVATE)
         //读取isOpen的值
         val isOpen = sharedPref.getBoolean("isOpen",false)
         return isOpen
+    }
+
+    /**
+     * function:判断轻唤醒是否开启
+     * */
+    fun isAwakeUp():Boolean{
+        val sharedPref = context.getSharedPreferences("alarm_config", Context.MODE_PRIVATE)
+        val isAwake = sharedPref.getBoolean("isAwake",false)
+        return isAwake
     }
 
     /**
