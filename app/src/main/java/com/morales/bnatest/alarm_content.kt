@@ -111,6 +111,6 @@ class alarm_content(private val context: Context) {
         val hours = totalMinutes / 60
         val minutes = totalMinutes % 60
 
-        return "还有 $hours 小时 $minutes 分钟"
+        return "距离闹钟开启：还有 $hours 小时 $minutes 分钟"
     }
 }

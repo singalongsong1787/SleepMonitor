@@ -3,6 +3,7 @@
 package com.morales.bnatest
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.pm.PackageManager
@@ -99,13 +100,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
     //acclerometer部分
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
-    private lateinit var accelerometerXValueTextView: TextView
-    private lateinit var accelerometerYValueTextView: TextView
-    private lateinit var accelerometerZValueTextView: TextView
 
-    private lateinit var gyroscopeXValueTextView: TextView
-    private lateinit var gyroscopeYValueTextView: TextView
-    private lateinit var gyroscopeZValueTextView: TextView
 
     //创建一个WakeLock对象
     private lateinit var mWakeLock:PowerManager.WakeLock
@@ -114,7 +109,9 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
 
     private lateinit var finishReceiver: BroadcastReceiver
 
-
+    //异步只从闹钟文本上的时间处理
+    private lateinit var alarmHandler: Handler
+    private lateinit var updateAlarmText:Runnable
 
     /**
      * function:用于更新时间显示
@@ -145,7 +142,11 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
     //audioDataQueue 的 BlockingQueue 对象，用于存储音频数据
     private val audioDataQueue: BlockingQueue<ShortArray> = LinkedBlockingQueue()
 
+    //闹钟文本
+    private lateinit var alarmTextView:TextView
 
+
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wake_up1)// 设置活动的布局文件
@@ -158,20 +159,12 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         // 初始化 TextView
         snoringPredictTextView = findViewById(R.id.SnoringPredict)
 
-
+        //闹钟文本
+        alarmTextView = findViewById(R.id.alarmText)
 
         // 获取传递过来的 SleepData 对象
         sleepData = intent.getParcelableExtra<SleepData>("sleepData")!!
 
-        //初始化accelerometer部分
-        accelerometerXValueTextView = findViewById(R.id.accelerometer_x_value)
-        accelerometerYValueTextView = findViewById(R.id.accelerometer_y_value)
-        accelerometerZValueTextView = findViewById(R.id.accelerometer_z_value)
-
-        //初始化gyroscope部分
-        gyroscopeXValueTextView = findViewById(R.id.gyroscope_x_value)
-        gyroscopeYValueTextView = findViewById(R.id.gyroscope_y_value)
-        gyroscopeZValueTextView = findViewById(R.id.gyroscope_z_value)
 
         //获取传感器服务
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -193,6 +186,35 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         val filter = IntentFilter("com.example.ACTION_FINISH_WAKEUP")
         registerReceiver(finishReceiver, filter)
 
+
+        /**闹钟文本操作**/
+        alarmHandler = Handler(Looper.getMainLooper())
+        updateAlarmText = object:Runnable{
+            override fun run(){
+                //获得周几
+                val alarmContent = alarm_content(this@WakeUp1)
+
+                //获得是否开启
+                val alarm_isOpen =alarmContent.isOpenEnabled()
+                Log.d("weekDay","闹钟是否开启${alarm_isOpen}")
+
+                var weekDay = alarmContent.getAdjustedDayOfWeek()
+                Log.d("weekDay","闹钟启动的日期为${weekDay}")
+                var isExisitDay = alarmContent.isWeekdayEnabled(weekDay)
+                Log.d("weekDay","闹钟是否启动${isExisitDay}")
+
+                if(!isExisitDay || !alarm_isOpen) {  //不开启
+                    val alamText = "${weekDay}未开启闹钟"
+                    alarmTextView.text = alamText
+                }else{
+                    val alarmTextTime = alarmContent.getTimeDifferenceDescription()
+                    alarmTextView.text = alarmTextTime
+                }
+                alarmHandler.postDelayed(this,1_000)
+            }
+        }
+
+        alarmHandler.post(updateAlarmText)
 
         /*
         //WakeLock初始化

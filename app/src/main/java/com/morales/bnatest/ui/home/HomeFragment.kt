@@ -61,6 +61,7 @@ class HomeFragment : Fragment() {
     private lateinit var currentSleepData:SleepData
     //闹钟文本
     private lateinit var alarmTextView: TextView
+
     //使用定时器定时刷新UI
     private lateinit var handler_alarm:Handler
     private lateinit var updateRunnable: Runnable
