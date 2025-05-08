@@ -124,7 +124,7 @@ def save_intensities():
 wakeup_threshold=1
 #对觉醒进行判断
 
-file_path1 = "/data/data/com.morales.bnatest/files/chaquopy/data505.csv"
+file_path1 = "/data/data/com.morales.bnatest/files/chaquopy/data507.csv"
 
 '''
 function:拿到开始和结束的时间戳
@@ -343,8 +343,9 @@ def getWakeUpAndDeepsleepInterval(start_end=labels_startToEnd,wakeup_interval=ge
 
     json_data=json.dumps(data)
     logger.debug(f"json_data - {json_data}")
-   # empty_csv_file(file_path1)
-    #os.remove(file_path1)
+    #empty_csv_file(file_path1)
+    os.remove(file_path1)
+    logging.info(f"remove successfully")
 
     return json_data
 

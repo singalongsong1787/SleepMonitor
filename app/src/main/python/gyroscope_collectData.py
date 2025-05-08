@@ -6,7 +6,7 @@ from datetime import datetime
 import math
 
 sampling = 50
-file_path =  "/data/data/com.morales.bnatest/files/chaquopy/gyroscope_data_test505.csv"
+file_path =  "/data/data/com.morales.bnatest/files/chaquopy/gyroscope_data_test507.csv"
 
 #检查文件是否存在
 directory = os.path.dirname(file_path)

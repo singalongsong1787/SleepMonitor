@@ -67,6 +67,11 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
     private lateinit var surfaceView: SurfaceView
     //surfaceHolder对象，用于surfaceView画布
     private lateinit var surfaceHolder: SurfaceHolder
+
+    // 声明 SurfaceHolder.Callback 用于监听 SurfaceView 的状态变化
+    private lateinit var surfaceHolderCallback: SurfaceHolder
+
+
     //handler对象，用于在主线程中执行任务
     private val handler = Handler(Looper.getMainLooper())
     //定义一个常量，用于表示时间更新间隔，单位ms
@@ -350,9 +355,21 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         }
     }*/
 
+    /**录音绘图线程的绘制**/
+    override fun onPause(){
+        super.onPause()
+        //surfaceView.holder.removeCallback(surfaceHolderCallback)
+    }
+
     /**执行原长按监听器的操作**/
     override fun onStop() {
         super.onStop()
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
         // 停止计时
         stopTimer()
         //获取结束时间
@@ -389,32 +406,33 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         Log.d("WakeUp1", "结束时间: ${sleepData.endTime}")
         Log.d("WakeUp1","创建文件路径：${sleepData.snoreDataPath}")
         Log.d("WakeUp1", "睡眠时间: ${sleepData.sleepDuration}")
-        Log.d("WakeUp1", "睡眠时间: ${sleepData.sleepDuration}")
+
         Log.d("WakeUp1","结束日期：${sleepData.endDate}")
         Log.d("WakeUp1","鼾声持续时间：${sleepData.snoringDuration}")
 
+
+        //增加判断，如果小于小于一小时不保存即可
+        val parts = sleepData.sleepDuration.split(":")
+        val hour_duration = parts[0].toInt()
+        if(hour_duration>=1)
+        {
+            saveSleepDataToSharedPreferences(sleepData)
+        }else{
+            Toast.makeText(this,"不足1小时，无效！",Toast.LENGTH_SHORT).show()
+        }
         //保存SleepData到SharedPerferences
-        saveSleepDataToSharedPreferences(sleepData)
-        Log.d("DataSave","保存成功")
+
+
 
         //将更新后的SleepData对象返回给调用者（Intent通信）
         val resultIntent = Intent()
         resultIntent.putExtra("updatedSleepData", sleepData)
         setResult(android.app.Activity.RESULT_OK, resultIntent)
 
+        stopService(Intent(this, SensorForegroundService::class.java))
         //调动其python文件，拿到json
         getWakeUpAndDeepSleep()
 
-
-        stopService(Intent(this,AlarmService::class.java))
-        stopService(Intent(this, SensorForegroundService::class.java))
-
-        cancelPendingIntent()
-
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
         handler.removeCallbacks(updateTimeRunnable)
         stopRecording()
         handler.removeCallbacksAndMessages(null)
@@ -428,7 +446,8 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         unregisterReceiver(finishReceiver)
 
         //查看是否只从了该操作
-        Toast.makeText(this,"Activity被销毁",Toast.LENGTH_SHORT).show()
+      //  Toast.makeText(this,"Activity被销毁",Toast.LENGTH_SHORT).show()
+        cancelPendingIntent()
 }
 
 override fun onSaveInstanceState(outState: Bundle) {
@@ -796,6 +815,9 @@ override fun onSaveInstanceState(outState: Bundle) {
         // 检查键是否已经存在，如果存在则移除
         if (sharedPreferences.contains(sleepData.date)) {
             editor.remove(sleepData.date)
+
+            //
+
         }
 
 
@@ -847,7 +869,7 @@ override fun onSaveInstanceState(outState: Bundle) {
             Log.d("WakeUpAndDeepSleep","成功得到Json")
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(this, "调用 Python1 处理失败", Toast.LENGTH_SHORT).show()
+           // Toast.makeText(this, "调用 Python1 处理失败", Toast.LENGTH_SHORT).show()
         }
     }
 
