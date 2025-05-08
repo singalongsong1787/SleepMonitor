@@ -58,6 +58,10 @@ class DashboardFragment : Fragment() {
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        //改变状态栏的颜色
+        val window = requireActivity().window
+        window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.bar_DashboardFragment)
+
         // 获取 ViewPager2 和 TabLayout 的引用
         val viewPager: ViewPager2 = binding.viewPager
         val tabLayout: TabLayout = binding.tabLayout

@@ -29,7 +29,6 @@ import kotlinx.serialization.json.Json
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 
-
 // 定义 SnoringAdapter 类，继承自 RecyclerView.Adapter，用于处理鼾声数据列表的显示
 /**
  * 类名：SnoringAdapter-继承RecyeclerView适配器
@@ -56,13 +55,12 @@ class SnoringAdapter(
     //注释：显示播放和读取都要去建立一个类对象
     private var audioTrack: AudioTrack? = null // 用于播放音频的 AudioTrack 实例（？表示这个类型可以为空）
     private var inputStream: FileInputStream? = null // 用于读取音频文件的输入流
-    private var isPlaying = AtomicBoolean(false) // 使用原子变量控制播放状态
+    @Volatile private var isPlaying = false
     //这个可以用在seekBar中
     private val handler = Handler(Looper.getMainLooper())//用于主线程中执行任务
 
-
-
-
+    //创建播放线程
+    private var playbackThread:Thread? = null
 
      /*
     // 用于创建新的 ViewHolder，ViewHolder 负责缓存列表项中的视图组件
@@ -160,14 +158,15 @@ class SnoringAdapter(
         }
 
         else if (holder is ItemViewHolder) {
-            val dataPosition = position - 1 // 减去头部视图的位置
+            val dataPosition = position - 1   // 减去头部视图的位置
             val displayName = displayFileNames[dataPosition]//表示播放文件名
             holder.snoringTime.text = displayName   //代表当前正在绑定数据的列表项
 
             val filePath = filePaths[dataPosition]
             // 加载波形数据（异步处理）
             loadWaveformAsync(filePath, holder)
-
+            Log.d("sonringPos","dataPosition：${dataPosition}")
+            Log.d("sonringPos","playingPosition：${playingPosition}")
             //根据当前播放状态设置icon（这段代码只是设计一个逻辑）
             if (dataPosition == playingPosition) {
                 holder.player.setImageResource(R.drawable.icon_pause)
@@ -176,40 +175,28 @@ class SnoringAdapter(
             }
 
 
-            var pre_postion:Int?=null
-
             holder.player.setOnClickListener {
-                stopPlaying()
 
-                pre_postion?.let{notifyItemChanged(pre_postion!!)}
-
-                //先停止当前正在播放的音频
-                if (playingPosition != -1) {
-                    // 调用停止播放方法，释放资源
-                    Log.d("PositonPro","正在有音频播放位置为 ${dataPosition},playingdata为${playingPosition}")
-                    stopPlaying()  //释放资源及对应的线程
-
-                    //调用这个方法后，RecyclerView 会重新绑定该位置的视图，以反映最新的数据。
-
-                }
-
+                //stopPlaying()
+                var pre_postion:Int = playingPosition
+                //pre_postion?.let{notifyItemChanged(pre_postion!!)}
                 if (playingPosition == dataPosition) {
                     // 如果当前点击的是正在播放的项，停止播放
-                    //stopPlaying()
+                    stopPlaying()
                     playingPosition = -1
+                    //notifyDataSetChanged()
                     Log.d("PositonPro","点击了正在播放的项，playingPosition设为-1")
-                   // holder.player.setImageResource(R.drawable.icon_player)
                 } else {
                     // 如果当前点击的不是正在播放的项，停止之前的播放，开始新的播放
                     stopPlaying()
-                    playingPosition = dataPosition
-                    pre_postion = dataPosition//储存上一个的位置
                     Log.d("PositonPro","点击不同位置的项，dataPosotion为${dataPosition},playingPosition为${playingPosition}")
+                    playingPosition = dataPosition
+                    Log.d("PositonPro","现在的playingPosition为${playingPosition}")
                     //isPlaying.set(true)
-                   holder.player.setImageResource(R.drawable.icon_pause)
                     Log.d("image","图片变换完成")
                     playPCMFileAsync(filePaths[dataPosition])
                 }
+                notifyDataSetChanged()
 
             }
         }
@@ -277,73 +264,57 @@ class SnoringAdapter(
 
     // 异步播放音频文件，避免在主线程进行耗时操作
     private fun playPCMFileAsync(filePath: String) {
-        isPlaying.set(true)
-        Thread {
+        isPlaying = true
+        playbackThread = Thread {
             try {
                 playPCMFile(filePath)
             } catch (e: Exception) {
-                Log.e("SnoringAdapter", "Error playing PCM file: ${e.message}", e)
+                Log.e("SnoringAdapter", "播放异常: ${e.message}", e)
                 stopPlaying()
+                Handler(Looper.getMainLooper()).post {
+                    val current = playingPosition
+                    playingPosition = -1
+                    notifyItemChanged(current)
+                }
             }
-        }.start()
+        }
+        playbackThread?.start()
     }
 
     // 播放 PCM 音频文件
     private fun playPCMFile(filePath: String) {
-        try {
-            // 创建 File 对象表示要播放的音频文件
-            val file = File(filePath)
-            // 创建文件输入流用于读取音频文件
-            inputStream = FileInputStream(file)
-            // 获取 AudioTrack 的最小缓冲区大小
-            val bufferSize = AudioTrack.getMinBufferSize(
-                16000, // 采样率
-                AudioFormat.CHANNEL_OUT_MONO, // 声道配置
-                AudioFormat.ENCODING_PCM_16BIT // 编码格式
-            )
-            // 创建 AudioTrack 实例用于播放音频
-            audioTrack = AudioTrack(
-                AudioManager.STREAM_MUSIC,
-                16000,
-                AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT,
-                bufferSize,
-                AudioTrack.MODE_STREAM
-            )
-            // 开始播放音频
-            audioTrack?.play()
-            // 创建字节数组用于存储从文件中读取的数据
-            val data = ByteArray(bufferSize)
-            var bytesRead: Int
-            // 循环读取文件数据并写入 AudioTrack 进行播放
-            while (inputStream?.read(data).also { bytesRead = it ?: -1 } != -1) {
-                audioTrack?.write(data, 0, bytesRead)
-                // 将读取的数据转换为十六进制字符串并打印日志
-                val dataHex = data.joinToString(separator = " ") { byte ->
-                    byte.toInt().and(0xFF).toString(16).padStart(2, '0')
-                }
-                Log.d("audioplayer", "读到的data为 $dataHex")
-            }
-        } catch (e: IOException) {
-            // 捕获并记录播放音频时可能出现的异常
-            Log.e("SnoringAdapter", "Error playing PCM file: ${e.message}")
-        } finally {
-            // 播放完成或出现异常时，停止播放并释放资源
-            stopPlaying()
-            // 找到当前播放项的 ViewHolder
-            /*
-            val currentViewHolder = snoringView.findViewHolderForAdapterPosition(playingPosition + 1)
-            if (currentViewHolder is ItemViewHolder) {
-                // 将当前播放项的图标恢复为播放图标
-                currentViewHolder.player.setImageResource(R.drawable.icon_player)
-            }*/
-            // 重置播放位置，表示没有正在播放的项
+        val file = File(filePath)
+        inputStream = FileInputStream(file)
+        val bufferSize = AudioTrack.getMinBufferSize(
+            16000,
+            AudioFormat.CHANNEL_OUT_MONO,
+            AudioFormat.ENCODING_PCM_16BIT
+        )
+
+        audioTrack = AudioTrack(
+            AudioManager.STREAM_MUSIC,
+            16000,
+            AudioFormat.CHANNEL_OUT_MONO,
+            AudioFormat.ENCODING_PCM_16BIT,
+            bufferSize,
+            AudioTrack.MODE_STREAM
+        )
+
+        val data = ByteArray(bufferSize)
+        audioTrack?.play()
 
 
-
-            playingPosition = -1
+        while (isPlaying) {
+            val readBytes = inputStream?.read(data) ?: -1
+            if (readBytes == -1) break
+            audioTrack?.write(data, 0, readBytes)
         }
+
+
+        stopPlaying()
+
     }
+
 
 
 
@@ -352,25 +323,27 @@ class SnoringAdapter(
      * 结束录音
      * */
     private fun stopPlaying() {
-        isPlaying.set(false)
+        isPlaying = false
         try {
+            playbackThread?.interrupt()
+            playbackThread = null
+
             audioTrack?.let {
-                if (it.state == AudioTrack.STATE_INITIALIZED) {
-                    if (it.playState == AudioTrack.PLAYSTATE_PLAYING) {
-                        it.stop()
-                    }
-                    it.release()
+                if (it.playState == AudioTrack.PLAYSTATE_PLAYING) {
+                    it.stop()
                 }
+                it.release()
             }
+
             inputStream?.close()
-        } catch (e: IOException) {
-            // 捕获并记录关闭输入流时可能出现的异常
-            Log.e("SnoringAdapter", "Error closing input stream: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e("SnoringAdapter", "释放播放资源失败", e)
         } finally {
             audioTrack = null
             inputStream = null
         }
     }
+
 
     private fun loadWaveformAsync(filePath: String, holder: ItemViewHolder) {
         Thread {

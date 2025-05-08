@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,6 +32,10 @@ class NotificationsFragment : Fragment() {
     ): View? {
         Log.d("NotificationsFragment", "onCreateView called")
         val view = inflater.inflate(R.layout.fragment_notifications, container, false)
+
+        //改变状态栏的颜色
+        val window = requireActivity().window
+        window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.bar_DashboardFragment)
 
         recyclerView = view.findViewById(R.id.function_recycler_view)
         if (recyclerView == null) {

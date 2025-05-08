@@ -59,6 +59,7 @@ import kotlin.experimental.and
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.MotionEvent
+import android.view.Window
 
 class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
     //时间显示对象
@@ -153,15 +154,14 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
     //闹钟文本
     private lateinit var alarmTextView:TextView
 
-
-
-
-
-
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wake_up1)// 设置活动的布局文件
+
+        //改变状态栏颜色
+        val window: Window = window
+        window.statusBarColor = ContextCompat.getColor(this, R.color.bar_wakeUp)
 
         timerTextView=findViewById(R.id.Timer)//初始化 timerTextView 对象。
         timeTextView = findViewById(R.id.wakeup_clock)// 初始化 timeTextView 对象。

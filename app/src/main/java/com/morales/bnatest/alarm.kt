@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import android.view.Window
 import android.widget.Button
 import android.widget.Switch
 import android.widget.TextView
@@ -21,6 +22,7 @@ import java.io.File
 import android.widget.CompoundButton
 import android.widget.ImageButton
 import android.widget.SeekBar
+import androidx.core.content.ContextCompat
 import com.morales.bnatest.ui.home.HomeFragment
 
 class alarm :AppCompatActivity(){
@@ -51,6 +53,10 @@ class alarm :AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.alarm_clock)
+
+        //改变状态栏颜色
+        val window: Window = window
+        window.statusBarColor = ContextCompat.getColor(this, R.color.bar_alarmActivity)
 
         //初始化RecycleView
         recyclerViewWeekdays = findViewById(R.id.recycleView_week)//星期视图

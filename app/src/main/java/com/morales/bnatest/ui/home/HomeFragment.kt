@@ -23,6 +23,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import android.util.Log
+import android.view.Window
 import android.widget.ImageButton
 import java.util.Calendar
 
@@ -39,9 +40,6 @@ import com.morales.bnatest.alarm_content
 class HomeFragment : Fragment() {
     //_binding绑定全局变量
     private var _binding: FragmentHomeBinding? = null
-
-
-
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -106,6 +104,11 @@ class HomeFragment : Fragment() {
             ViewModelProvider(this).get(HomeViewModel::class.java)//创建一个ViewModel（用于数据管理）
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)//使用布局绑定工具将布局文件绑定到当前 Fragment
+
+        //设置状态栏的颜色
+        val window = requireActivity().window
+        window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.bar_homeFragment)
+
         //时钟部分
         timeTextView = binding.homeClock//时钟
         handler.post(updateTimeRunnable)//启动定时任务，更新时间
