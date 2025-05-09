@@ -417,6 +417,12 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         if(hour_duration>=1)
         {
             saveSleepDataToSharedPreferences(sleepData)
+
+            //将翻身文件保存到File中
+            val roll_sharedPref = getSharedPreferences("StatusOfRollPrefs_1",Context.MODE_PRIVATE)
+            saveSharedPreferencesToFile(this,roll_sharedPref,"roll")
+            deleteSharedPreferencesFile(this,"StatusOfRollPrefs_1")
+
         }else{
             Toast.makeText(this,"不足1小时，无效！",Toast.LENGTH_SHORT).show()
         }
@@ -448,6 +454,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         //查看是否只从了该操作
       //  Toast.makeText(this,"Activity被销毁",Toast.LENGTH_SHORT).show()
         cancelPendingIntent()
+
 }
 
 override fun onSaveInstanceState(outState: Bundle) {
@@ -958,6 +965,77 @@ override fun onSaveInstanceState(outState: Bundle) {
         Log.d("AlarmPending","发送broadcast成功")
 
     }
+
+
+    /**
+     * function:将xml中的value内容保存到文件中
+     * @param：（1）上下文  （2）文件名.xml
+     * @return：null
+     * */
+    private fun saveSharedPreferencesToFile(context: Context,
+                                            sharedPreferences: SharedPreferences,
+                                            subDirectoryName:String? = null){
+
+        val fileName = "roll" + SimpleDateFormat("yyyyMMdd",
+            Locale.getDefault()).format(Calendar.getInstance().time) + ".txt" //file文件名
+
+        val baseDir =context.filesDir
+        val targetDir = if(subDirectoryName.isNullOrBlank()){
+            baseDir
+        }else{
+            val dir =File(baseDir,subDirectoryName)
+            dir.mkdirs()
+            dir
+        }
+
+        //这个文件名filesDir应该是能改的
+        val fileToDelete = File(targetDir,fileName)
+        val file = File(targetDir,fileName)
+        var fileOutputStream: FileOutputStream? = null
+
+        // 删除已存在的同名文件
+        if (fileToDelete.exists() && fileToDelete.isFile) {
+            if (fileToDelete.delete()) {
+                android.util.Log.i("saveSharedPreferences", "Existing file '${fileToDelete.name}' deleted.")
+            } else {
+                android.util.Log.e("saveSharedPreferences", "Failed to delete existing file '${fileToDelete.name}'.")
+                // 可以选择在此处处理删除失败的情况，例如抛出异常或直接保存新文件（可能会覆盖旧文件）
+            }
+        }
+
+
+
+        try{
+            fileOutputStream = FileOutputStream(file)
+            val allEntries = sharedPreferences.all
+
+            for ((key, value) in allEntries) {
+                val line = "$key\n"
+                fileOutputStream.write(line.toByteArray())
+            }
+        }catch (e: IOException) {
+            e.printStackTrace()
+            // 可选：添加保存失败的日志
+            android.util.Log.e("saveSharedPreferences", "Error saving data: ${e.message}")
+        } finally {
+            try {
+                fileOutputStream?.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+
+    }
+
+    private fun deleteSharedPreferencesFile(context: Context, name: String): Boolean {
+        val prefsFile = File(context.filesDir, "shared_prefs/$name.xml")
+        return if (prefsFile.exists()) {
+            prefsFile.delete()
+        } else {
+            false // 文件不存在
+        }
+    }
+
 
 
 }

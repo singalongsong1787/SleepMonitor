@@ -216,6 +216,7 @@ class HomeFragment : Fragment() {
         _binding = null
         //停止更新时间
         handler.removeCallbacks(updateTimeRunnable)
+        handler_alarm.removeCallbacks(updateRunnable)
     }
 
 

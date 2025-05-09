@@ -36,7 +36,9 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
     // 添加数据类作为构造参数
     public var data: wakeUpAndDeepSleep? = null,//传递给视图的睡眠数据
 
-    private val specifiedDate: String? = null
+    private val specifiedDate: String? = null,
+
+    private var roll_list:List<String>? =null
 
 
 ) : View(context, attrs, defStyleAttr) {
@@ -92,8 +94,6 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
         data?.let{
             //解析时间
             //val (startTime,endTime) = parseTime(it.start_end)//解析起始时间
-
-
             val timePair = parseTime(it.start_end)
             startTime = timePair.first
             endTime = timePair.second
@@ -212,15 +212,21 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
 
 
             //解析文件
-            val roll_list = parseSharedPreferencesXML(context,"StatusOfRollPrefs_1")
+            //val roll_list = parseSharedPreferencesXML(context,"StatusOfRollPrefs_1")
             Log.d("SleepChartView","parse后的list:${roll_list}")
-            for((time,value) in roll_list){
-                //Log.d("SleepChart","时间的分钟值为${getSecsToMintues(time)}")
-                var timeOfRoll_parse = getSecsToMintues(time)
-                //将其转换为View上的坐标
-                var xPos_Roll = (timeOfRoll_parse - startTime) / totalMinutes *(width - 2 * leftRightMargin) + leftRightMargin
-                drawlineOfRoll(xPos_Roll,100f,paint_roll,canvas)
-                Log.d("SleepChartView","绘制成功")
+
+            //缺一个roll_list
+
+
+            if (roll_list != null) {
+                for(time in roll_list!!){
+                    //Log.d("SleepChart","时间的分钟值为${getSecsToMintues(time)}")
+                    var timeOfRoll_parse = getSecsToMintues(time)
+                    //将其转换为View上的坐标
+                    var xPos_Roll = (timeOfRoll_parse - startTime) / totalMinutes *(width - 2 * leftRightMargin) + leftRightMargin
+                    drawlineOfRoll(xPos_Roll,100f,paint_roll,canvas)
+                    Log.d("SleepChartView","绘制成功")
+                }
             }
 
 
@@ -686,8 +692,9 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
      * @return：无
      * */
 
-    fun updateData(newData: wakeUpAndDeepSleep?) {
+    fun updateData(newData: wakeUpAndDeepSleep?,data_list: List<String>?) {
         data = newData
+        roll_list = data_list
         invalidate() // 触发重绘
     }
 
@@ -725,6 +732,9 @@ class SleepChartView @JvmOverloads constructor( //@JvmOverloads constructor用�
         return entries
 
     }
+
+
+
 
     //做一个直线对象的类
     inner  class Line(val startX: Float, val startY: Float, val stopX: Float, val stopY: Float)

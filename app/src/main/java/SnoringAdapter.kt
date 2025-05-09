@@ -140,19 +140,25 @@ class SnoringAdapter(
                 val formattedTime = String.format("%d时%02d分%02d秒", hours, minutes, seconds)
                 holder.totalSnoringTime.text = formattedTime
 
-                // 实例化 SleepChartView 并传入指定日期
-                //var sleepChartView = SleepChartView(holder.itemView.context, specifiedDate = specifiedDate)
-                /*
-                holder.sleepchart = sleepChartView
-                holder.sleepchart.data = getWakeUpAndDeepSleep(holder.itemView.context,specifiedDate)
-                holder.sleepchart.invalidate()*/
-
                 val data1 = getWakeUpAndDeepSleep(context,specifiedDate)
                 Log.d("dateSleep","data为：${data1}")
 
+                /*
+                val latest_file = getLatestModifiedFile(File(context.filesDir,"roll"))
+                //Log.d("file_headview","latest_file为：${latest_file}")
+
+
+                val rollDir = File(context.filesDir,"roll")
+                var rollData:List<String>?  = null
+                if(latest_file !=null){
+                    val readFile = File(rollDir, latest_file)
+                    rollData =readFileLines(readFile)
+                    Log.d("file_headview","readFile为：${rollData}")
+                }*/
+                val rollData = getRollData(context,specifiedDate)
                 val sleepChartView = holder.sleepchart
                 val newData = getWakeUpAndDeepSleep(context, specifiedDate)
-                sleepChartView.updateData(newData)
+                sleepChartView.updateData(newData,rollData)
 
             }
         }
@@ -376,59 +382,6 @@ class SnoringAdapter(
         return samples
     }
 
-    /**
-     * function:获取最近的sleepData
-     * 该方法从SharedPreferences中读取存储的睡眠数据，通过遍历所有键值对找到最新的日期
-     *然后根据该日期获取对应的睡眠数据，包括开始时间、结束时间、持续时间以及鼾声数据路径
-     * return：最新的SleepData对象，如果没有找到数据则返回null
-     * */
-/*
-    private fun getLatestSleepData(): SleepData? {
-        //获取名为”SleepDataPrefs“的sharedPreferences
-        val sharedPreferences = context.getSharedPreferences("SleepDataPrefs", Context.MODE_PRIVATE)
-       //获取所有条目
-        val allEntries = sharedPreferences.all
-        //用于存储找到的最新日期
-        var latestDate: String? = null
-
-        // 遍历SharedPreferences中的所有键值对
-        for (entry in allEntries) {
-
-            if (Pattern.matches("\\d{4}-\\d{2}-\\d{2}", entry.key)) {
-                if (latestDate == null || entry.key > latestDate) {
-                    latestDate = entry.key
-                }
-            }
-        }
-        Log.d("SleepData", "latestDate: $latestDate")
-
-        /**
-         * 注：这的函数语法得好好看看
-         * */
-
-        return latestDate?.let { date ->
-            try {
-                // 获取对应日期的 JSON 字符串
-                val jsonString = sharedPreferences.getString(date, null)
-                if (jsonString != null) {
-                    // 使用 Gson 解析 JSON 字符串
-                    val gson = Gson()
-                    val type = object : TypeToken<SleepData>() {}.type
-                    val sleepData = gson.fromJson<SleepData>(jsonString, type)
-                    Log.d("SleepData", "endTime: ${sleepData.endTime}")
-                    Log.d("SleepData", "其所代表的键为: $date")
-                    Log.d("SleepData", "end: ${sleepData.endDate}")
-
-                    return@let sleepData
-                }
-            } catch (e: Exception) {
-                Log.e("SleepData", "解析 JSON 数据出错: ${e.message}", e)
-            }
-            null
-
-        }
-
-    }*/
 
     private fun getSleepData(date: String?): SleepData? {
         val sharedPreferences = context.getSharedPreferences("SleepDataPrefs", Context.MODE_PRIVATE)
@@ -515,5 +468,56 @@ class SnoringAdapter(
         }
     }
 
+    /**
+     * function:找到文件夹中创建最晚的文件
+     * @param：文件夹名称
+     * @return:文件名称
+     * */
+    private fun getLatestModifiedFile(dir:File):String?{
+        if (!dir.isDirectory) return null
+
+        return dir.listFiles()
+            ?.filter { it.isFile } // 只考虑文件，不包括子文件夹
+            ?.maxByOrNull { it.lastModified() }
+            ?.name
+    }
+
+    /**
+     * function:读取文件
+     * @param：文件（类型--->文件File）
+     * @return:List<String>
+     * */
+    private fun readFileLines(file: File): List<String> {
+        if (!file.exists() || !file.isFile) return emptyList()
+        return file.readLines(Charsets.UTF_8) // 默认UTF-8，可根据实际修改
+    }
+
+    /**
+     * function:读取文件
+     * */
+    private fun getRollData(context:Context, date:String? = null):List<String>{
+
+        val rollDir = File(context.filesDir,"roll")
+        var targetFile: File? = null
+
+        if(date.isNullOrEmpty()){
+            //日期为空，找最新文件
+            val latestFileName = getLatestModifiedFile(rollDir)//得到最新文件的名称
+            if (latestFileName != null) {
+                targetFile = File(rollDir, latestFileName) //得到最新File
+        }
+    }else{
+            // 日期不为空，构造文件名
+            val fileName = "roll${date.replace("-", "")}" // e.g., roll20250506
+            targetFile = File(rollDir, fileName)
+        }
+
+        return if (targetFile != null && targetFile.exists() && targetFile.isFile) {
+            readFileLines(targetFile)
+        } else {
+            emptyList()
+        }
+
+}
 
 }
