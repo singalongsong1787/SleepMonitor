@@ -31,12 +31,9 @@ class CalendarActivity:AppCompatActivity(){
 
         // 读取 SharedPreferences 中的可选日期
         val selectableDates = getSelectableDatesFromSharedPrefs()
-        Log.d("CalendarActivity", "可选日期列表: ${selectableDates.joinToString { "${it.year}-${it.month + 1}-${it.day}" }}")
-
         // 创建并应用装饰器
         calendarView.addDecorator(RedDateDecorator(selectableDates))
         Log.d("color","修改成功")
-
         calendarView.addDecorator(SelectableDatesDecorator(selectableDates))
 
 

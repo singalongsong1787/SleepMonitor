@@ -421,7 +421,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
             //将翻身文件保存到File中
             val roll_sharedPref = getSharedPreferences("StatusOfRollPrefs_1",Context.MODE_PRIVATE)
             saveSharedPreferencesToFile(this,roll_sharedPref,"roll")
-            deleteSharedPreferencesFile(this,"StatusOfRollPrefs_1")
+
 
         }else{
             Toast.makeText(this,"不足1小时，无效！",Toast.LENGTH_SHORT).show()
@@ -454,6 +454,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         //查看是否只从了该操作
       //  Toast.makeText(this,"Activity被销毁",Toast.LENGTH_SHORT).show()
         cancelPendingIntent()
+        deleteSharedPreferencesFile(this,"StatusOfRollPrefs_1")
 
 }
 
@@ -1028,7 +1029,8 @@ override fun onSaveInstanceState(outState: Bundle) {
     }
 
     private fun deleteSharedPreferencesFile(context: Context, name: String): Boolean {
-        val prefsFile = File(context.filesDir, "shared_prefs/$name.xml")
+        val prefsFile = File(context.filesDir.parent, "shared_prefs/$name.xml")
+        Log.d("FileDelete","删除的文件为${prefsFile}")
         return if (prefsFile.exists()) {
             prefsFile.delete()
         } else {
