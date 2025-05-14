@@ -344,10 +344,14 @@ def getWakeUpAndDeepsleepInterval(start_end=labels_startToEnd,wakeup_interval=ge
     json_data=json.dumps(data)
     logger.debug(f"json_data - {json_data}")
     #empty_csv_file(file_path1)
-    os.remove(file_path1)
+    #os.remove(file_path1)
     logging.info(f"remove successfully")
 
     return json_data
+
+def remove_file():
+    empty_csv_file(file_path1)
+    os.remove(file_path1)
 
 def empty_csv_file(file_path):
     try:

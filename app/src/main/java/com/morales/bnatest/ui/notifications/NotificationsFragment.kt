@@ -6,8 +6,6 @@ import FunctionItem
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.provider.CalendarContract
 import android.view.LayoutInflater
 import android.view.View
@@ -27,6 +25,7 @@ class NotificationsFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: FunctionAdapter
     private val functionItemList = mutableListOf<FunctionItem>()
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

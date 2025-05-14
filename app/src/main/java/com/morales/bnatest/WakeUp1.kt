@@ -401,14 +401,14 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         sleepData=sleepData.copy(snoringDuration = totalCountStr )
 
         // 日志查看属性信息
-        Log.d("WakeUp1", "日期: ${sleepData.date}")
+        /*Log.d("WakeUp1", "日期: ${sleepData.date}")
         Log.d("WakeUp1", "开始时间: ${sleepData.startTime}")
         Log.d("WakeUp1", "结束时间: ${sleepData.endTime}")
         Log.d("WakeUp1","创建文件路径：${sleepData.snoreDataPath}")
         Log.d("WakeUp1", "睡眠时间: ${sleepData.sleepDuration}")
 
         Log.d("WakeUp1","结束日期：${sleepData.endDate}")
-        Log.d("WakeUp1","鼾声持续时间：${sleepData.snoringDuration}")
+        Log.d("WakeUp1","鼾声持续时间：${sleepData.snoringDuration}")*/
 
 
         //增加判断，如果小于小于一小时不保存即可
@@ -421,7 +421,7 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
             //将翻身文件保存到File中
             val roll_sharedPref = getSharedPreferences("StatusOfRollPrefs_1",Context.MODE_PRIVATE)
             saveSharedPreferencesToFile(this,roll_sharedPref,"roll")
-
+            deleteSharedPreferencesFile(this,"StatusOfRollPrefs_1")
 
         }else{
             Toast.makeText(this,"不足1小时，无效！",Toast.LENGTH_SHORT).show()
@@ -435,9 +435,8 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         resultIntent.putExtra("updatedSleepData", sleepData)
         setResult(android.app.Activity.RESULT_OK, resultIntent)
 
-        stopService(Intent(this, SensorForegroundService::class.java))
-        //调动其python文件，拿到json
-        getWakeUpAndDeepSleep()
+        //stopService(Intent(this, SensorForegroundService::class.java))
+
 
         handler.removeCallbacks(updateTimeRunnable)
         stopRecording()
@@ -454,8 +453,9 @@ class WakeUp1 : AppCompatActivity(){ //kotlin是可以多继承的
         //查看是否只从了该操作
       //  Toast.makeText(this,"Activity被销毁",Toast.LENGTH_SHORT).show()
         cancelPendingIntent()
-        deleteSharedPreferencesFile(this,"StatusOfRollPrefs_1")
 
+        //调动其python文件，拿到json
+        getWakeUpAndDeepSleep()
 }
 
 override fun onSaveInstanceState(outState: Bundle) {
@@ -881,6 +881,7 @@ override fun onSaveInstanceState(outState: Bundle) {
         }
     }
 
+
     /**
      * function:保存深睡这方面的信息
      * @param：json、
@@ -1029,8 +1030,7 @@ override fun onSaveInstanceState(outState: Bundle) {
     }
 
     private fun deleteSharedPreferencesFile(context: Context, name: String): Boolean {
-        val prefsFile = File(context.filesDir.parent, "shared_prefs/$name.xml")
-        Log.d("FileDelete","删除的文件为${prefsFile}")
+        val prefsFile = File(context.filesDir, "shared_prefs/$name.xml")
         return if (prefsFile.exists()) {
             prefsFile.delete()
         } else {

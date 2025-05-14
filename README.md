@@ -20,6 +20,10 @@ SleepMonitor支持睡眠报告的查看，数据的删除等功能。
   - 轻唤醒
   - 10分钟后再响
 
+## 算法
+
+[算法](algorithm/algorithmOverview.md)
+
 ## 界面展示
 
 ### 主页
@@ -75,7 +79,3 @@ SleepMonitor支持睡眠报告的查看，数据的删除等功能。
  <img src="./images/AlarmClock1.jpg" width="200" style="margin: 0 10px;">
  <img src="./images/AlarmClock2.jpg" width="200" style="margin: 0 10px;">
 </center>
-
-## 今日工作
-
-更多调用手机传感器数据，包括加速度传感器、陀螺仪和旋转传感器，已更一步对睡姿进行检测。

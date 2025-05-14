@@ -64,6 +64,8 @@ class SensorForegroundService:Service(),SensorEventListener {
     override fun onCreate(){
         super.onCreate()
 
+        init_wakeUpAndDeepSleep()
+
         Log.d("SensorService", "Service onCreate called")
 
         //获取传感器——加速度传感器
@@ -117,8 +119,8 @@ class SensorForegroundService:Service(),SensorEventListener {
      * */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         accelerometer?.let {
-
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            val samplingPeriodUs = 20000
+            sensorManager.registerListener(this, it, samplingPeriodUs)
         }
 
         /*Gyroscope*/
@@ -423,6 +425,17 @@ class SensorForegroundService:Service(),SensorEventListener {
         editor.apply()
         Log.d("RollDection","保存成功")
     }
+
+    private fun init_wakeUpAndDeepSleep(){
+        if(!Python.isStarted()){
+            Python.start(AndroidPlatform(this))
+        }
+        val python =Python.getInstance()//得到运行环境
+        val pyModule =python.getModule("sensor_data")
+        pyModule.callAttr("remove_file")
+        Log.d("dataCSV","removed sucessfully")
+    }
+
 
 
 }

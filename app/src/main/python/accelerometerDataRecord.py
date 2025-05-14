@@ -89,7 +89,7 @@ def save_intensities():
         directory = os.path.dirname(file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-            logging.info(f"creat successfully")
+
 
 
         # 检查文件是否存在，如果不存在则创建并写入表头

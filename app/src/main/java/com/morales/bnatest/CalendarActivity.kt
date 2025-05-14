@@ -27,13 +27,24 @@ class CalendarActivity:AppCompatActivity(){
 
         setContentView(R.layout.activity_calendar)//设置视图
 
+
+        val calendatInitStart = System.currentTimeMillis()
         calendarView = findViewById(R.id.calendarView)//绑定xml文件中的日历视图
+        val calendatInitEnd = System.currentTimeMillis()
+        Log.d("performance","init的时间为${calendatInitEnd - calendatInitStart}")
+
+        calendarView.state().edit().setMinimumDate(CalendarDay.from(2025,1,1))
+            .setMaximumDate(CalendarDay.from(2026,1,1))
+            .commit()
 
         // 读取 SharedPreferences 中的可选日期
         val selectableDates = getSelectableDatesFromSharedPrefs()
+        //Log.d("CalendarActivity", "可选日期列表: ${selectableDates.joinToString { "${it.year}-${it.month + 1}-${it.day}" }}")
+
         // 创建并应用装饰器
         calendarView.addDecorator(RedDateDecorator(selectableDates))
-        Log.d("color","修改成功")
+        //Log.d("color","修改成功")
+
         calendarView.addDecorator(SelectableDatesDecorator(selectableDates))
 
 
