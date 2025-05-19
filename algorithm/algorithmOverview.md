@@ -1,6 +1,6 @@
 # 算法概述
 
-## <span style="color:red">**鼾声识别**</span>
+## <span style="color:red">**1.   鼾声识别**</span>
 
 基于**卷积神经网络**（CNN）构建鼾声识别的算法模型，使用tensorflow学习框架，语言Python。
 
@@ -57,4 +57,28 @@
 
 [男女鼾声数据集](https://www.kaggle.com/datasets/orannahum/female-and-male-snoring/data)
 
-## 睡眠分期算法
+## <span style="color:red">2.  睡眠分期算法</span>
+
+**简述**：该方法不能求解出完整的睡眠分期（即快速眼动期、非快速眼动期），无法得到完整的睡眠周期图。
+
+**参考方法**：[github项目 SleepCycleAnalysis-AndroidApp]([GitHub - lerota/SleepCycleAnalysis-AndroidApp: Android smart wake-up app for sleep pattern detection and analysis.](https://github.com/lerota/SleepCycleAnalysis-AndroidApp?tab=readme-ov-file#sleepcycleanalysis-androidapp)),该方法主要用到<span style="color:red">*差分变换*</span>和<span style="color:red">*多项式拟合*</span>
+
+**做出的修改：**修改其多项式拟合部分，使用<span style="color:red">*RMS窗口监测*</span>
+
+[具体过程](sleepStage/method_sleepStage.md)
+
+### 缺陷
+
+这种方法具有明显的缺陷性，受限于条件和时间限制，采用这种方法。
+
+（1） 这种方法只根据体动的强度情况判定，判定条件单一
+
+（2） 只能大致分清觉醒、浅睡和深睡情况。
+
+（3） 个人认为手机的摆放位置、床的材质等因素会影响其判断。
+
+### 其他方法
+
+睡眠分期应该结合其他生理参数判断，加入多种传感器去判断（结合翻身、呼吸、光照等因素）。
+
+[研究到的其他方法](sleepStage/otherMethod_sleepStage.md)
