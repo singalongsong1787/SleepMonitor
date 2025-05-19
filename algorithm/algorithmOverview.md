@@ -40,13 +40,13 @@
 
 （<span style="color:red">注：该模型其提供了诸多压缩方案，转换的本质也是在压缩，不一定非要对模型进行压缩，该模型官方提供了几个示例程序。</span>）
 
-<span style="color:red">**转换代码：**</span>[convertTF.py](convertTF.py)
-
-### 
+<span style="color:red">**转换代码：**</span>[convertTF.py](convertTF.py) 
 
 ### 性能评估
 
-查看详情
+[查看详情](model_perfermanceEvaluation.md)
+
+<span style="color:red">**转换代码：**</span>[modelTest.py](modelTrain.py)
 
 ## <span style="color:blue">**不足及可能解决方案**</span>
 
@@ -56,3 +56,5 @@
 [audioSet](https://research.google.com/audioset/dataset/snoring.html)有专门的鼾声类，但提取较为困难，采样率模糊
 
 [男女鼾声数据集](https://www.kaggle.com/datasets/orannahum/female-and-male-snoring/data)
+
+## 睡眠分期算法
