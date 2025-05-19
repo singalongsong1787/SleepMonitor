@@ -189,7 +189,7 @@ output:1.觉醒区间
 #读取文件
 data_accelerometer,labels_startToEnd,earliest_time=readCVS()
 
-def find_intervals_above_threshold(data=data_accelerometer, threshold=2, interval=300):
+def find_intervals_above_threshold(data=data_accelerometer, threshold=1, interval=300):
     intervals = []
     # 修改初始化部分
     current_start = None

@@ -86,7 +86,7 @@ class alarm :AppCompatActivity(){
             startActivity(intent)
         }
 
-        val Items = arrayOf("夏日之梦", "糖果", "元气满满","春日")
+        val Items = arrayOf("铃声1", "铃声2", "铃声3","铃声4")
         //定位于bell TextView
         val bell_textView = findViewById<TextView>(R.id.name_bell)
 
@@ -276,7 +276,7 @@ class alarm :AppCompatActivity(){
         val bell_constraintLayout = findViewById<ConstraintLayout>(R.id.alarm_conslayout_4)
         bell_constraintLayout.setOnClickListener{
             // 定义对话框的列表项
-            val items = arrayOf("夏日之梦", "糖果", "元气满满","春日")
+            val items = arrayOf("铃声1", "铃声2", "铃声3","铃声4")
             // 创建 AlertDialog.Builder 对象
             val builder = AlertDialog.Builder(this)
             // 设置对话框的标题

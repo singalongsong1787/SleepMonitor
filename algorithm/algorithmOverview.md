@@ -1,7 +1,5 @@
 # 算法概述
 
- 
-
 ## <span style="color:red">**鼾声识别**</span>
 
 基于**卷积神经网络**（CNN）构建鼾声识别的算法模型，使用tensorflow学习框架，语言Python。
@@ -49,8 +47,6 @@
 ### 性能评估
 
 查看详情
-
-
 
 ## <span style="color:blue">**不足及可能解决方案**</span>
 
